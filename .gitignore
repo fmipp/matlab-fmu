@@ -1,0 +1,44 @@
+# ignore binaries
+binaries/libfmipp_fmu_frontend.lib
+binaries/libboost_date_time-vc100-mt-1_58.lib
+binaries/libboost_filesystem-vc100-mt-1_58.lib
+binaries/libboost_system-vc100-mt-1_58.lib
+
+# ignore SWIG content
+packages/SwigMem.m
+packages/SwigRef.m
+packages/+fmippex
+packages/+fmippim
+packages/+fmipputils
+packages/lib/*.dll
+packages/lib/*.mexw32
+
+# ignore FMUs for testing
+*.fmu
+
+# ignore pickle file from installation process
+matlab_fmu_install.pkl
+
+# ignore output from compiling the documentation
+doc/matlab-fmu-doc.aux
+doc/matlab-fmu-doc.bbl
+doc/matlab-fmu-doc.blg
+doc/matlab-fmu-doc.log
+doc/matlab-fmu-doc.out
+doc/matlab-fmu-doc.pdf
+doc/matlab-fmu-doc.ptc
+doc/matlab-fmu-doc.synctex.gz
+doc/matlab-fmu-doc.toc
+
+# ignore extra files from running CMake
+release/ALL_BUILD.*
+release/CMakeCache.txt
+release/CMakeFiles
+release/FMIPP_MATLAB_FMU_EXPORT.*
+release/Release
+release/Type6139Lib.*
+release/Win32
+release/ZERO_CHECK.*
+release/cmake_install.cmake
+release/libfmipp_fmu_frontend.*
+release/*.pyc
