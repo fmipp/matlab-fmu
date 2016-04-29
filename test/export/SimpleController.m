@@ -30,7 +30,7 @@ while true
     backend.waitForMaster();
 
     % Get current model time.
-    syncTime = backend.getCurrentCommunicationPoint();
+    syncTime = backend.getCurrentCommunicationPoint() + backend.getCommunicationStepSize();
 
     % Read current input values.
     inputValues = fmipputils.getRealInputValues( backend, realInputs, realInputSize );
