@@ -40,8 +40,10 @@ while true
 
     if ( T >= Thigh )
         Pheat = 0.;   % turn off heating
+        disp( [ 'turn heating OFF at t = ', num2str( syncTime ) ] );
     elseif ( T <= Tlow )
         Pheat = 1e3;  % turn on heating
+        disp( [ 'turn heating ON at t = ', num2str( syncTime ) ] );
     end
 
     % Write current output values.
