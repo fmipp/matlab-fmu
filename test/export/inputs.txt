@@ -1,0 +1,3 @@
+;;;; list of outputs ;;;;
+
+Real:Pheat	; output signal: heating power in W

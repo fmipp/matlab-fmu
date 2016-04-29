@@ -32,7 +32,7 @@ def generateMexFMU(
         model_description_header = '<?xml version="1.0" encoding="UTF-8"?>\n<fmiModelDescription fmiVersion="1.0" modelName="__MODEL_NAME__" modelIdentifier="__MODEL_IDENTIFIER__" description="MATLAB/MEX FMI CS export" generationTool="FMI++ MATLAB/MEX Export Utility" generationDateAndTime="__DATE_AND_TIME__" variableNamingConvention="flat" numberOfContinuousStates="0" numberOfEventIndicators="0" author="__USER__" guid="{__GUID__}">\n\t<ModelVariables>\n'
 
         # Template string for XML model description of scalar variables.
-        scalar_variable_node = '\t\t<ScalarVariable name="__VAR_NAME__" valueReference="__VAL_REF__" variability="continuous" causality="__CAUSALITY__">\n\t\t\t<Real__START_VALUE__/>\n\t\t</ScalarVariable>\n'
+        scalar_variable_node = '\t\t<ScalarVariable name="__VAR_NAME__" valueReference="__VAL_REF__" variability="continuous" causality="__CAUSALITY__">\n\t\t\t<__VAR_TYPE____START_VALUE__/>\n\t\t</ScalarVariable>\n'
 
         # Template string for XML model description footer.
         model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="true" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__SCRIPT_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="-nosplash -nojvm -logfile __MODEL_IDENTIFIER__.log -r &quot;try; run(\'__SCRIPT_FILE_NAME__\'); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
@@ -70,14 +70,17 @@ def generateMexFMU(
         #
         input_val_ref = 1 # Value references for inputs start with 1.
         for var in fmi_input_vars:
+                var_type = var[0]
+                var_name = var[1]
                 scalar_variable_description = scalar_variable_node
-                scalar_variable_description = scalar_variable_description.replace( '__VAR_NAME__', var )
+                scalar_variable_description = scalar_variable_description.replace( '__VAR_NAME__', var_name )
+                scalar_variable_description = scalar_variable_description.replace( '__VAR_TYPE__', var_type )
                 scalar_variable_description = scalar_variable_description.replace( '__CAUSALITY__', "input" )
                 scalar_variable_description = scalar_variable_description.replace( '__VAL_REF__', str( input_val_ref ) )
-                if var in start_values:
-                        start_value_description = ' start=\"' + start_values[var] + '\"'
+                if var_name in start_values:
+                        start_value_description = ' start=\"' + start_values[var_name] + '\"'
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', start_value_description )
-                        if ( True == verbose ): print '[DEBUG] Added start value to model description: ', var, '=', start_values[var]
+                        if ( True == verbose ): print '[DEBUG] Added start value to model description: ', var_name, '=', start_values[var_name]
                 else:
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', '' )
                 input_val_ref += 1
@@ -87,14 +90,17 @@ def generateMexFMU(
         # Value references for outputs start with 1001 (except there are already input value references with corresponding values).
         output_val_ref = 1001 if ( input_val_ref < 1001 ) else input_val_ref
         for var in fmi_output_vars:
+                var_type = var[0]
+                var_name = var[1]
                 scalar_variable_description = scalar_variable_node
-                scalar_variable_description = scalar_variable_description.replace( '__VAR_NAME__', var )
+                scalar_variable_description = scalar_variable_description.replace( '__VAR_NAME__', var_name )
+                scalar_variable_description = scalar_variable_description.replace( '__VAR_TYPE__', var_type )
                 scalar_variable_description = scalar_variable_description.replace( '__CAUSALITY__', "output" )
                 scalar_variable_description = scalar_variable_description.replace( '__VAL_REF__', str( output_val_ref ) )
-                if var in start_values:
-                        start_value_description = ' start=\"' + start_values[var] + '\"'
+                if var_name in start_values:
+                        start_value_description = ' start=\"' + start_values[var_name] + '\"'
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', start_value_description )
-                        if ( True == verbose ): print '[DEBUG] Added start value to model description: ', var, '=', start_values[var]
+                        if ( True == verbose ): print '[DEBUG] Added start value to model description: ', var_name, '=', start_values[var_name]
                 else:
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', '' )
                 output_val_ref += 1
@@ -190,7 +196,7 @@ def generateMexFMU(
                 os.remove( 'fmiFunctions.obj' )
                 shutil.rmtree( fmi_model_identifier, False )
                 for file_name in glob.glob( fmi_model_identifier + '.*' ):
-                        if not ( ( ".fmu" in file_name ) or ( ".dck" in file_name ) or ( ".tpf" in file_name ) ): os.remove( file_name )
+                        if not ( ( ".fmu" in file_name ) or ( ".m" in file_name ) ): os.remove( file_name )
 
 
 # Helper function. Retrieve labels from file. The file is expected to
@@ -201,16 +207,22 @@ def retrieveLabelsFromFile( file_name, labels ):
                 line = input_file.readline() # Read next line.
                 if not line: break # End of file.
 
-                line = line.strip(' "\'\n') # Strip all leasing and trailing whitespaces etc.
+                line = line.strip(' "\'\t\n') # Strip all leasing and trailing whitespaces etc.
 
                 semicolon_position = line.find( ';' ) # Check for comments.
                 if ( 0 == semicolon_position ):
                         continue # Comment line.
                 elif ( -1 != semicolon_position ):
-                        line = line[0:semicolon_position].strip(' "\'\n') # Remove comment from line
+                        line = line[0:semicolon_position].strip(' "\'\t\n') # Remove comment from line
 
                 if 0 != len( line ):
-                        labels.append( line ) # Append line to list of labels.
+                        [ var_type, var_name ] = line.split( ':' );
+                        var_type = var_type.strip(' "\'\t\n')
+                        var_name = var_name.strip(' "\'\t\n')
+                        if var_type not in [ 'Real', 'Integer', 'Boolean', 'String' ]:
+                                print '\n[ERROR] The type of variable', var_name, 'is not recognized:', var_type
+                                sys.exit(8)
+                        labels.append( [ var_type, var_name ] ) # Append to list of labels.
                         
 
 # Helper function
@@ -232,26 +244,6 @@ def usage():
         print '-I, --matlab-install-dir=\tpath to MATLAB installation directory (e.g., C:\\MATLAB)'
         print '\nAdditional files may be specified (e.g., additional scripts or data files) that will be automatically copied to the FMU.'
         print '\nStart values for variables may be defined. For instance, to set variable with name \"var1\" to value 12.34, specifiy \"var1=12.34\" in the command line as optional argument.'
-
-
-# Helper function. Retrieve labels from file. The file is expected to
-# have one entry per line, comment lines start with a semicolon (;).
-def retrieveLabelsFromFile( file_name, labels ):
-        input_file = open( file_name, 'r' ) # Open the file.
-        while True:
-                line = input_file.readline() # Read next line.
-                if not line: break # End of file.
-
-                line = line.strip(' "\'\n\t') # Strip all leading and trailing whitespaces etc.
-
-                semicolon_position = line.find( ';' ) # Check for comments.
-                if ( 0 == semicolon_position ):
-                        continue # Comment line.
-                elif ( -1 != semicolon_position ):
-                        line = line[0:semicolon_position].strip(' "\'\n\t') # Remove comment from line
-
-                if 0 != len( line ):
-                        labels.append( line ) # Append line to list of labels.
 
 
 # Main function
@@ -373,7 +365,7 @@ if __name__ == "__main__":
                 print '[DEBUG] FMI model identifier:', fmi_model_identifier
                 print '[DEBUG] MATLAB script:', script_file_name 
                 print '[DEBUG] MATLAB install directory:', matlab_install_dir
-                print '[DEBUG] Aditional files:'
+                if 0 != len( optional_files ): print '[DEBUG] Additional files:'
                 for file_name in optional_files:
                         print '\t', file_name
 
@@ -387,7 +379,7 @@ if __name__ == "__main__":
         if ( True == verbose ):
                 print '[DEBUG] FMI input parameters:'
                 for var in fmi_input_vars:
-                        print '\t', var
+                        print '\t', var[0], ':', var[1]
 
         # Parse file to retrieve FMI output variable names.
         if ( None != output_var_file_name ):
@@ -395,7 +387,7 @@ if __name__ == "__main__":
         if ( True == verbose ):
                 print '[DEBUG] FMI output parameters:'
                 for var in fmi_output_vars:
-                        print '\t', var
+                        print '\t', var[0], ':', var[1]
 
         try:
                 generateMexFMU(
