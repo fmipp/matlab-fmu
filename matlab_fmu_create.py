@@ -14,7 +14,7 @@ def generateMexFMU(
                 fmi_output_vars,
                 start_values,
                 optional_files,
-                mex_fmu_root_dir ):
+                matlab_fmu_root_dir ):
         """Generate an FMU from MATLAB using binary MEX files.
 
     Keyword arguments:
@@ -25,7 +25,7 @@ def generateMexFMU(
         fmi_output_vars -- definition of output variable names (list of strings)
         start_values -- definition of start values (map of strings to strings)
         optional_files -- definition of additional files (list of strings)
-        mex_fmu_root_dir -- path root dir of MEX FMU Export Utility (string)
+        matlab_fmu_root_dir -- path root dir of FMI++ MATLAB FMU Export Utility (string)
         """
         
         # Template string for XML model description header.
@@ -35,7 +35,7 @@ def generateMexFMU(
         scalar_variable_node = '\t\t<ScalarVariable name="__VAR_NAME__" valueReference="__VAL_REF__" variability="continuous" causality="__CAUSALITY__">\n\t\t\t<__VAR_TYPE____START_VALUE__/>\n\t\t</ScalarVariable>\n'
 
         # Template string for XML model description footer.
-        model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="true" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__SCRIPT_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="-nosplash -nojvm -logfile __MODEL_IDENTIFIER__.log -r &quot;try; run(\'__SCRIPT_FILE_NAME__\'); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
+        model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="true" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__SCRIPT_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="-nosplash -nojvm -logfile __MODEL_IDENTIFIER__.log -r &quot;try; fmippPath=getenv(\'MATLAB_FMIPP_ROOT\'); addpath(genpath(fullfile(fmippPath,\'packages\'))); fmipputils.activateInterface(); run(\'__SCRIPT_FILE_NAME__\'); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
 
         # Create new XML model description file.
         model_description_name = 'modelDescription.xml'
@@ -144,7 +144,7 @@ def generateMexFMU(
         fmu_shared_library_name = fmi_model_identifier + '.dll'
 
         # Check if batch file for build process exists.
-        build_process_batch_file = mex_fmu_root_dir + '\\build.bat'
+        build_process_batch_file = matlab_fmu_root_dir + '\\build.bat'
         if ( False == os.path.isfile( build_process_batch_file ) ):
                 print '\n[ERROR] Could not find file', build_process_batch_file
                 raise Exception( 8 )
@@ -275,7 +275,7 @@ if __name__ == "__main__":
         start_values = {}
 
         # Relative or absolute path to MATLAB/MEX FMU Export Utility.
-        mex_fmu_root_dir = os.path.dirname( sys.argv[0] ) if len( os.path.dirname( sys.argv[0] ) ) else '.'
+        matlab_fmu_root_dir = os.path.dirname( sys.argv[0] ) if len( os.path.dirname( sys.argv[0] ) ) else '.'
 
         # Verbose flag.
         verbose = False
@@ -329,17 +329,11 @@ if __name__ == "__main__":
                 usage()
                 sys.exit(4)
         
-        # No MATLAB install directory provided -> read from file (created by script 'mex_fmu_install.py').
+        # No MATLAB install directory provided.
         if ( None == matlab_install_dir ):
-                pkl_file_name = mex_fmu_root_dir + '\\mex_fmu_install.pkl'
-                if ( True == os.path.isfile( pkl_file_name ) ):
-                        pkl_file = open( pkl_file_name, 'rb' )
-                        matlab_install_dir = pickle.load( pkl_file )
-                        pkl_file.close()
-                else:
-                        print '\n[ERROR] Please re-run script \'mex_fmu_install.py\' or provide MATLAB install directory via command line option -i (--matlab-install-dir)!'
-                        usage()
-                        sys.exit(5)
+                print '\n[ERROR] Invalid MATLAB install dir:', matlab_install_dir
+                usage()
+                sys.exit(5)
 
         # Check if specified MATLAB install directory exists.
         if ( False == os.path.isdir( matlab_install_dir ) ):
@@ -398,7 +392,7 @@ if __name__ == "__main__":
                         fmi_output_vars,
                         start_values,
                         optional_files,
-                        mex_fmu_root_dir )
+                        matlab_fmu_root_dir )
         except Exception as e:
                 sys.exit( e.args[0] )
         
