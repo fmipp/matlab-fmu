@@ -6,7 +6,7 @@ addpath( genpath( fullfile( fmippPath, 'packages' ) ) );
 model_name = 'StandaloneRadiator';
 
 % Specify the path to the extracted (unzipped) FMU.
-uri_to_extracted_fmu = 'file:///D:/Development/matlab-fmipp/test/import/StandaloneRadiator';
+uri_to_extracted_fmu = 'file:///C:/Development/matlab-fmipp/test/import/StandaloneRadiator';
 
 % Specify the FMU's configuration parameters.
 logging_on = fmippim.fmiFalse();        % Turn verbosity on/off.

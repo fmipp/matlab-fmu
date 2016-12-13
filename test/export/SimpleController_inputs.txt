@@ -1,3 +1,0 @@
-;;;; list of inputs ;;;;
-
-Real : T	; input signal: temperature in degC

@@ -1,7 +1,7 @@
 within ;
 model ControlledRadiator
 
-  SimpleController_fmu simpleController_fmu(fmi_loggingOn=true,fmi_CommunicationStepSize=300);
+  TestController_fmu testController_fmu(fmi_loggingOn=true,fmi_CommunicationStepSize=300);
 
   Real T(start = Tstart); // radiator temperature [degC]
   Real Q(start = M*C*Tstart); // energy stored in radiator [J]
@@ -13,8 +13,8 @@ model ControlledRadiator
   parameter Real M = 50; // mass of stored water [kg]
 
 algorithm
-  simpleController_fmu.T := T;
-  Pheat := simpleController_fmu.Pheat;
+  testController_fmu.T := T;
+  Pheat := testController_fmu.Pheat;
 
 equation
 

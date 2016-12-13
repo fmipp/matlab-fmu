@@ -8,18 +8,19 @@ import sys, os, shutil, time, getpass, uuid, urlparse, urllib, getopt, pickle, s
 
 def generateMexFMU(
                 fmi_model_identifier,
-                script_file_name,
+                class_file_name,
                 matlab_install_dir,
                 fmi_input_vars,
                 fmi_output_vars,
                 start_values,
                 optional_files,
-                matlab_fmu_root_dir ):
+                matlab_fmu_root_dir,
+                use_jvm ):
         """Generate an FMU from MATLAB using binary MEX files.
 
     Keyword arguments:
         fmi_model_identifier -- FMI model identfier for FMU (string)
-        script_file_name -- name of MATLAB script (string)
+        class_file_name -- name of MATLAB script (string)
         matlab_install_dir -- MATLAB installation directory (string)
         fmi_input_vars -- definition of input variable names (list of strings)
         fmi_output_vars -- definition of output variable names (list of strings)
@@ -27,7 +28,11 @@ def generateMexFMU(
         optional_files -- definition of additional files (list of strings)
         matlab_fmu_root_dir -- path root dir of FMI++ MATLAB FMU Export Utility (string)
         """
-        
+
+        fmi_model_name = os.path.basename( class_file_name ).split( '.' )[0] # Class definition file name with extension.
+
+        startup_flags = '-nosplash -nojvm' if ( use_jvm == False ) else '-nosplash'
+
         # Template string for XML model description header.
         model_description_header = '<?xml version="1.0" encoding="UTF-8"?>\n<fmiModelDescription fmiVersion="1.0" modelName="__MODEL_NAME__" modelIdentifier="__MODEL_IDENTIFIER__" description="MATLAB/MEX FMI CS export" generationTool="FMI++ MATLAB/MEX Export Utility" generationDateAndTime="__DATE_AND_TIME__" variableNamingConvention="flat" numberOfContinuousStates="0" numberOfEventIndicators="0" author="__USER__" guid="{__GUID__}">\n\t<ModelVariables>\n'
 
@@ -35,7 +40,7 @@ def generateMexFMU(
         scalar_variable_node = '\t\t<ScalarVariable name="__VAR_NAME__" valueReference="__VAL_REF__" variability="continuous" causality="__CAUSALITY__">\n\t\t\t<__VAR_TYPE____START_VALUE__/>\n\t\t</ScalarVariable>\n'
 
         # Template string for XML model description footer.
-        model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="true" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__SCRIPT_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="-nosplash -nojvm -logfile __MODEL_IDENTIFIER__.log -r &quot;try; fmippPath=getenv(\'MATLAB_FMIPP_ROOT\'); addpath(genpath(fullfile(fmippPath,\'packages\'))); fmipputils.activateInterface(); run(\'__SCRIPT_FILE_NAME__\'); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
+        model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="true" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__CLASS_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="__STARTUP_FLAGS__ -logfile __MODEL_IDENTIFIER__.log -r &quot;try; fmippPath=getenv(\'MATLAB_FMIPP_ROOT\'); addpath(genpath(fullfile(fmippPath,\'packages\'))); obj = __MODEL_NAME__(); obj.initBase(); obj.run(); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
 
         # Create new XML model description file.
         model_description_name = 'modelDescription.xml'
@@ -50,8 +55,8 @@ def generateMexFMU(
         model_description_footer = model_description_footer.replace( '__MODEL_IDENTIFIER__', fmi_model_identifier )
 
         # Model name.
-        fmi_model_name = os.path.basename( script_file_name ).split( '.' )[0] # Script file name with extension.
         model_description_header = model_description_header.replace( '__MODEL_NAME__', fmi_model_name )
+        model_description_footer = model_description_footer.replace( '__MODEL_NAME__', fmi_model_name )
 
         # Creation date and time.
         model_description_header = model_description_header.replace( '__DATE_AND_TIME__', time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
@@ -61,6 +66,9 @@ def generateMexFMU(
 
         # GUID.
         model_description_header = model_description_header.replace( '__GUID__', str( uuid.uuid1() ) )
+
+        # MATLAB startup flags.
+        model_description_footer = model_description_footer.replace( '__STARTUP_FLAGS__', startup_flags )
 
         # Write header to file.
         model_description.write( model_description_header );
@@ -116,7 +124,7 @@ def generateMexFMU(
         model_description_footer = model_description_footer.replace( '__MATLAB_EXE_URI__', matlab_exe_uri )
 
         # Input script file.
-        model_description_footer = model_description_footer.replace( '__SCRIPT_FILE_NAME__', os.path.basename( script_file_name ) )
+        model_description_footer = model_description_footer.replace( '__CLASS_FILE_NAME__', os.path.basename( class_file_name ) )
 
         # Additional input files.
         if ( 0 == len( optional_files ) ):
@@ -173,7 +181,7 @@ def generateMexFMU(
 
         # Copy all files to working directory.
         shutil.copy( model_description_name, fmi_model_identifier ) # XML model description.
-        shutil.copy( script_file_name, fmi_model_identifier ) # MATLAB script.
+        shutil.copy( class_file_name, fmi_model_identifier ) # MATLAB script.
         for file_name in optional_files: # Additional files.
                 shutil.copy( file_name, fmi_model_identifier )
         shutil.copy( fmu_shared_library_name, binaries_dir ) # FMU DLL.
@@ -231,7 +239,7 @@ def usage():
         print '\nABOUT:'
         print 'This script generates FMUs for Co-Simulation (tool coupling) from MATLAB scripts with the help of '
         print '\nUSAGE:'
-        print 'python mex_fmu_create.py [-h] [-v] [-I matlab_install_dir] -m model_id -s script_file_name [-i input_var_file] [-o output_var_file] [additional_file_1 ... additional_file_N] [var1=start_val1 ... varN=start_valN]'
+        print 'python mex_fmu_create.py [-h] [-v] [-I matlab_install_dir] -m model_id -s class_file_name [-i input_var_file] [-o output_var_file] [additional_file_1 ... additional_file_N] [var1=start_val1 ... varN=start_valN]'
         print '\nREQUIRED ARGUMENTS:'
         print '-m, --model-id=\t\tspecify FMU model identifier'
         print '-s, --script=\tpath to MATLAB script'
@@ -241,6 +249,7 @@ def usage():
         print '-h, --help\t\tdisplay this information'
         print '-v, --verbose\t\tturn on log messages'
         print '-l, --litter\t\tdo not clean-up intermediate files'
+        print '-J, --useJVM\t\tstart JVM together with MATLAB'
         print '-I, --matlab-install-dir=\tpath to MATLAB installation directory (e.g., C:\\MATLAB)'
         print '\nAdditional files may be specified (e.g., additional scripts or data files) that will be automatically copied to the FMU.'
         print '\nStart values for variables may be defined. For instance, to set variable with name \"var1\" to value 12.34, specifiy \"var1=12.34\" in the command line as optional argument.'
@@ -257,7 +266,7 @@ if __name__ == "__main__":
         fmi_model_identifier = None
 
         # MATLAB script.
-        script_file_name = None
+        class_file_name = None
 
         # File containing FMI input variable names.
         input_var_file_name = None
@@ -282,11 +291,14 @@ if __name__ == "__main__":
 
         # Litter flag.
         litter = False
+		
+        # Flag for starting MATLAB with/without JVM.
+        use_jvm = False
 
         # Parse command line arguments.
         try:
-                options_definition_short = "vhlm:s:I:i:o:"
-                options_definition_long = [ "verbose", "help", "litter", "model-id=", 'script=', 'matlab-install-dir=', 'input-var-file=', 'output-var-file=' ]
+                options_definition_short = "vhlJm:c:I:i:o:"
+                options_definition_long = [ "verbose", "help", "litter", "useJVM", "model-id=", 'class=', 'matlab-install-dir=', 'input-var-file=', 'output-var-file=' ]
                 options, extra = getopt.getopt( sys.argv[1:], options_definition_short, options_definition_long )
         except getopt.GetoptError as err:
                 print str( err )
@@ -300,8 +312,8 @@ if __name__ == "__main__":
                         sys.exit()
                 elif opt in ( '-m', '--model-id' ):
                         fmi_model_identifier = arg
-                elif opt in ( '-s', '--script' ):
-                        script_file_name = arg
+                elif opt in ( '-c', '--class' ):
+                        class_file_name = arg
                 elif opt in ( '-i', '--input-var-file' ):
                         input_var_file_name = arg
                 elif opt in ( '-o', '--output-var-file' ):
@@ -312,6 +324,8 @@ if __name__ == "__main__":
                         verbose = True
                 elif opt in ( '-l', '--litter' ):
                         litter = True
+                elif opt in ( '-J', '--useJVM' ):
+                        use_jvm = True
 
         # Check if FMI model identifier has been specified.
         if ( None == fmi_model_identifier ):
@@ -319,13 +333,13 @@ if __name__ == "__main__":
                 usage()
                 sys.exit(2)
 
-        # Check if MATLAB script has been specified.
-        if ( None == script_file_name ):
-                print '\n[ERROR] No MATLAB script specified!'
+        # Check if MATLAB class definition file has been specified.
+        if ( None == class_file_name ):
+                print '\n[ERROR] No MATLAB class definition file specified!'
                 usage()
                 sys.exit(3)
-        elif ( False == os.path.isfile( script_file_name ) ): # Check if specified script exists.
-                print '\n[ERROR] Invalid MATLAB script:', script_file_name
+        elif ( False == os.path.isfile( class_file_name ) ): # Check if specified class definition file exists.
+                print '\n[ERROR] Invalid MATLAB class definition file:', class_file_name
                 usage()
                 sys.exit(4)
         
@@ -357,8 +371,9 @@ if __name__ == "__main__":
 
         if ( True == verbose ):
                 print '[DEBUG] FMI model identifier:', fmi_model_identifier
-                print '[DEBUG] MATLAB script:', script_file_name 
+                print '[DEBUG] MATLAB class definition:', class_file_name 
                 print '[DEBUG] MATLAB install directory:', matlab_install_dir
+                if False != use_jvm: print '[DEBUG] Using JVM.'
                 if 0 != len( optional_files ): print '[DEBUG] Additional files:'
                 for file_name in optional_files:
                         print '\t', file_name
@@ -371,7 +386,7 @@ if __name__ == "__main__":
         if ( None != input_var_file_name ):
                 retrieveLabelsFromFile( input_var_file_name, fmi_input_vars );
         if ( True == verbose ):
-                print '[DEBUG] FMI input parameters:'
+                print '[DEBUG] FMI input variables/parameters:'
                 for var in fmi_input_vars:
                         print '\t', var[0], ':', var[1]
 
@@ -379,20 +394,21 @@ if __name__ == "__main__":
         if ( None != output_var_file_name ):
                 retrieveLabelsFromFile( output_var_file_name, fmi_output_vars );
         if ( True == verbose ):
-                print '[DEBUG] FMI output parameters:'
+                print '[DEBUG] FMI output variables:'
                 for var in fmi_output_vars:
                         print '\t', var[0], ':', var[1]
 
         try:
                 generateMexFMU(
                         fmi_model_identifier,
-                        script_file_name,
+                        class_file_name,
                         matlab_install_dir,
                         fmi_input_vars,
                         fmi_output_vars,
                         start_values,
                         optional_files,
-                        matlab_fmu_root_dir )
+                        matlab_fmu_root_dir,
+                        use_jvm )
         except Exception as e:
                 sys.exit( e.args[0] )
         

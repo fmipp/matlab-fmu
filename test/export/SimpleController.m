@@ -1,54 +1,58 @@
-% Load FMI++ interface.
-fmippPath = getenv( 'MATLAB_FMIPP_ROOT' );
-addpath( genpath( fullfile( fmippPath, 'packages' ) ) );
+classdef SimpleController < fmipputils.FMUBase
 
-% Create a new FMI backend.
-backend = fmippex.FMIComponentBackEnd();
+	properties
+	
+		Thigh_ = 90;
+		Tlow_ = 80;
+		Pheat_ = 0;
 
-% Initialize the backend.
-backend.startInitialization();
+	end % properties
 
-% Define inputs (of type real).
-inputVariableNames = { 'T' };
-[realInputs, realInputSize] = fmipputils.defineRealInputs( backend, inputVariableNames );
 
-% Define outputs (of type real).
-outputVariableNames = { 'Pheat' };
-[realOutputs, realOutputSize] = fmipputils.defineRealOutputs( backend, outputVariableNames );
+	methods
+	
+		% Full constructor.
+        function obj = SimpleController()
+            obj@fmipputils.FMUBase();
+        end
+		
+		function init( obj, currentCommunicationPoint )
+		
+			% Define inputs (of type real).
+			inputVariableNames = { 'T' };
+			defineRealInputs( obj, inputVariableNames );
 
-% End initialization.
-backend.endInitialization();
+			% Define outputs (of type real).
+			outputVariableNames = { 'Pheat' };
+			defineRealOutputs( obj, outputVariableNames );
 
-% Define controller parameters.
-Thigh = 90;
-Tlow = 80;
-Pheat = 0;
+			disp( 'FMI++ backend for co-simulation: INIT DONE.' );
 
-% Pseudo simulation loop.
-while true
-    % Wait for simulation master to hand over control.
-    backend.waitForMaster();
+		end % function init
 
-    % Get current model time.
-    syncTime = backend.getCurrentCommunicationPoint() + backend.getCommunicationStepSize();
 
-    % Read current input values.
-    inputValues = fmipputils.getRealInputValues( backend, realInputs, realInputSize );
+		function doStep( obj, currentCommunicationPoint, communicationStepSize )
+			
+			syncTime = currentCommunicationPoint + communicationStepSize;
 
-    % Calculate output values.
-    T = inputValues(1);
+			% Read current input values.
+			realInputValues = getRealInputValues( obj );
+			T = realInputValues(1);
+			
+			% Calculate output values.
+			if ( T >= obj.Thigh_ )
+				obj.Pheat_ = 0.;   % turn off heating
+				disp( [ 'turn heating OFF at t = ', num2str( syncTime ) ] );
+			elseif ( T <= obj.Tlow_ )
+				obj.Pheat_ = 1e3;  % turn on heating
+				disp( [ 'turn heating ON at t = ', num2str( syncTime ) ] );
+			end
 
-    if ( T >= Thigh )
-        Pheat = 0.;   % turn off heating
-        disp( [ 'turn heating OFF at t = ', num2str( syncTime ) ] );
-    elseif ( T <= Tlow )
-        Pheat = 1e3;  % turn on heating
-        disp( [ 'turn heating ON at t = ', num2str( syncTime ) ] );
-    end
+			% Write current output values.
+			setRealOutputValues( obj, obj.Pheat_ );
 
-    % Write current output values.
-    fmipputils.setRealOutputValues( backend, realOutputs, realOutputSize, Pheat );
+		end % function doStep
 
-    % Give back control to simulation master.
-    backend.signalToMaster();
-end
+	end % methods
+
+end % classdef
