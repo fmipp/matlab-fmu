@@ -9,6 +9,7 @@ packages/SwigMem.m
 packages/SwigRef.m
 packages/+fmippex
 packages/+fmippim
+packages/+fmipputils
 packages/lib/*.dll
 packages/lib/*.mexw32
 
