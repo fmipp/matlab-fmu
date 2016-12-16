@@ -1,4 +1,4 @@
-classdef SimpleController < fmipputils.FMUBase
+classdef SimpleController < fmipputils.FMIAdapter
 
 	properties
 	
@@ -13,7 +13,7 @@ classdef SimpleController < fmipputils.FMUBase
 	
 		% Full constructor.
         function obj = SimpleController()
-            obj@fmipputils.FMUBase();
+            obj@fmipputils.FMIAdapter();
         end
 		
 		function init( obj, currentCommunicationPoint )
