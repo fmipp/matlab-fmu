@@ -20,11 +20,13 @@ classdef SimpleController < fmipputils.FMIAdapter
 		
 			% Define inputs (of type real).
 			inputVariableNames = { 'T' };
-			defineRealInputs( obj, inputVariableNames );
+			obj.defineRealInputs( inputVariableNames );
 
 			% Define outputs (of type real).
 			outputVariableNames = { 'Pheat' };
-			defineRealOutputs( obj, outputVariableNames );
+			obj.defineRealOutputs( outputVariableNames );
+			
+			obj.enforceTimeStep( 300 );
 
 			disp( 'FMI++ backend for co-simulation: INIT DONE.' );
 
@@ -36,7 +38,7 @@ classdef SimpleController < fmipputils.FMIAdapter
 			syncTime = currentCommunicationPoint + communicationStepSize;
 
 			% Read current input values.
-			realInputValues = getRealInputValues( obj );
+			realInputValues = obj.getRealInputValues();
 			T = realInputValues(1);
 			
 			% Calculate output values.
@@ -49,7 +51,7 @@ classdef SimpleController < fmipputils.FMIAdapter
 			end
 
 			% Write current output values.
-			setRealOutputValues( obj, obj.Pheat_ );
+			obj.setRealOutputValues( obj.Pheat_ );
 
 		end % function doStep
 
