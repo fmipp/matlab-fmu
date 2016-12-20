@@ -15,7 +15,8 @@ def generateMexFMU(
                 start_values,
                 optional_files,
                 matlab_fmu_root_dir,
-                use_jvm ):
+                use_jvm,
+                fixed_step ):
         """Generate an FMU from MATLAB using binary MEX files.
 
     Keyword arguments:
@@ -27,6 +28,8 @@ def generateMexFMU(
         start_values -- definition of start values (map of strings to strings)
         optional_files -- definition of additional files (list of strings)
         matlab_fmu_root_dir -- path root dir of FMI++ MATLAB FMU Export Utility (string)
+        use_jvm -- start JVM together with MATLAB (boolean)
+        fixed_step -- enforce fixed step simulation (boolean)
         """
 
         fmi_model_name = os.path.basename( class_file_name ).split( '.' )[0] # Class definition file name with extension.
@@ -40,7 +43,7 @@ def generateMexFMU(
         scalar_variable_node = '\t\t<ScalarVariable name="__VAR_NAME__" valueReference="__VAL_REF__" variability="continuous" causality="__CAUSALITY__">\n\t\t\t<__VAR_TYPE____START_VALUE__/>\n\t\t</ScalarVariable>\n'
 
         # Template string for XML model description footer.
-        model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="true" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__CLASS_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="__STARTUP_FLAGS__ -logfile __MODEL_IDENTIFIER__.log -r &quot;try; fmippPath=getenv(\'MATLAB_FMIPP_ROOT\'); addpath(genpath(fullfile(fmippPath,\'packages\'))); obj = __MODEL_NAME__(); obj.initBase(); obj.run(); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
+        model_description_footer = '\t</ModelVariables>\n\t<Implementation>\n\t\t<CoSimulation_Tool>\n\t\t\t<Capabilities canHandleVariableCommunicationStepSize="__VARIABLE_COM_STEP__" canHandleEvents="true" canRejectSteps="false" canInterpolateInputs="false" maxOutputDerivativeOrder="0" canRunAsynchronuously="false" canSignalEvents="false" canBeInstantiatedOnlyOncePerProcess="false" canNotUseMemoryManagementFunctions="true"/>\n\t\t\t<Model entryPoint="fmu://__CLASS_FILE_NAME__" manualStart="false" type="application/x-matlab">__ADDITIONAL_FILES__</Model>\n\t\t</CoSimulation_Tool>\n\t</Implementation>\n\t<VendorAnnotations>\n\t\t<matlab arguments="__STARTUP_FLAGS__ -logfile __MODEL_IDENTIFIER__.log -r &quot;try; fmippPath=getenv(\'MATLAB_FMIPP_ROOT\'); addpath(genpath(fullfile(fmippPath,\'packages\'))); obj = __MODEL_NAME__(); obj.initBackEnd(); obj.run(); catch err; disp(err); end; quit;&quot;" executableURI="__MATLAB_EXE_URI__"/>\n\t</VendorAnnotations>\n</fmiModelDescription>'
 
         # Create new XML model description file.
         model_description_name = 'modelDescription.xml'
@@ -69,6 +72,12 @@ def generateMexFMU(
 
         # MATLAB startup flags.
         model_description_footer = model_description_footer.replace( '__STARTUP_FLAGS__', startup_flags )
+
+        # Enforce fixed simulation step size.
+        if fixed_step == True:
+                model_description_footer = model_description_footer.replace( '__VARIABLE_COM_STEP__', 'false' )
+        else:
+                model_description_footer = model_description_footer.replace( '__VARIABLE_COM_STEP__', 'true' )
 
         # Write header to file.
         model_description.write( model_description_header );
@@ -250,6 +259,7 @@ def usage():
         print '-v, --verbose\t\tturn on log messages'
         print '-l, --litter\t\tdo not clean-up intermediate files'
         print '-J, --useJVM\t\tstart JVM together with MATLAB'
+        print '-F, --fixedStep\t\tenforce fixed simulation step size'
         print '-I, --matlab-install-dir=\tpath to MATLAB installation directory (e.g., C:\\MATLAB)'
         print '\nAdditional files may be specified (e.g., additional scripts or data files) that will be automatically copied to the FMU.'
         print '\nStart values for variables may be defined. For instance, to set variable with name \"var1\" to value 12.34, specifiy \"var1=12.34\" in the command line as optional argument.'
@@ -295,10 +305,13 @@ if __name__ == "__main__":
         # Flag for starting MATLAB with/without JVM.
         use_jvm = False
 
+        # Flag for starting MATLAB with/without JVM.
+        fixed_step = False
+
         # Parse command line arguments.
         try:
-                options_definition_short = "vhlJm:c:I:i:o:"
-                options_definition_long = [ "verbose", "help", "litter", "useJVM", "model-id=", 'class=', 'matlab-install-dir=', 'input-var-file=', 'output-var-file=' ]
+                options_definition_short = "vhlJFm:c:I:i:o:"
+                options_definition_long = [ "verbose", "help", "litter", "useJVM", "fixedStep", "model-id=", 'class=', 'matlab-install-dir=', 'input-var-file=', 'output-var-file=' ]
                 options, extra = getopt.getopt( sys.argv[1:], options_definition_short, options_definition_long )
         except getopt.GetoptError as err:
                 print str( err )
@@ -326,6 +339,8 @@ if __name__ == "__main__":
                         litter = True
                 elif opt in ( '-J', '--useJVM' ):
                         use_jvm = True
+                elif opt in ( '-F', '--fixedStep' ):
+                        fixed_step = True
 
         # Check if FMI model identifier has been specified.
         if ( None == fmi_model_identifier ):
@@ -373,7 +388,8 @@ if __name__ == "__main__":
                 print '[DEBUG] FMI model identifier:', fmi_model_identifier
                 print '[DEBUG] MATLAB class definition:', class_file_name 
                 print '[DEBUG] MATLAB install directory:', matlab_install_dir
-                if False != use_jvm: print '[DEBUG] Using JVM.'
+                if True == use_jvm: print '[DEBUG] Using JVM.'
+                if True == fixed_step: print '[DEBUG] Enforce fixed step size.'
                 if 0 != len( optional_files ): print '[DEBUG] Additional files:'
                 for file_name in optional_files:
                         print '\t', file_name
@@ -408,7 +424,8 @@ if __name__ == "__main__":
                         start_values,
                         optional_files,
                         matlab_fmu_root_dir,
-                        use_jvm )
+                        use_jvm,
+                        fixed_step )
         except Exception as e:
                 sys.exit( e.args[0] )
         
