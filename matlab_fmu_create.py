@@ -3,7 +3,17 @@
 # All rights reserved. See file MEX_FMU_LICENSE.txt for details.
 # -----------------------------------------------------------------
 
+### Python 2
 import sys, os, shutil, time, getpass, uuid, urlparse, urllib, getopt, pickle, subprocess, glob
+def _print( *arg ): print ' '.join( map( str, arg ) )
+def _urljoin( base, url ): return urlparse.urljoin( base, url )
+def _pathname2url( path ): return urllib.pathname2url( path )
+
+### Python 3
+#import sys, os, shutil, time, getpass, uuid, urllib.parse, urllib.request, urllib, getopt, pickle, subprocess, glob
+#def _print( *arg ): print( ' '.join( map( str, arg ) ) )
+#def _urljoin( base, url ): return urllib.parse.urljoin( base, url )
+#def _pathname2url( path ): return urllib.request.pathname2url( path )
 
 
 def generateMexFMU(
@@ -97,7 +107,7 @@ def generateMexFMU(
                 if var_name in start_values:
                         start_value_description = ' start=\"' + start_values[var_name] + '\"'
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', start_value_description )
-                        if ( True == verbose ): print '[DEBUG] Added start value to model description: ', var_name, '=', start_values[var_name]
+                        if ( True == verbose ): _print( '[DEBUG] Added start value to model description: ', var_name, '=', start_values[var_name] )
                 else:
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', '' )
                 input_val_ref += 1
@@ -117,7 +127,7 @@ def generateMexFMU(
                 if var_name in start_values:
                         start_value_description = ' start=\"' + start_values[var_name] + '\"'
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', start_value_description )
-                        if ( True == verbose ): print '[DEBUG] Added start value to model description: ', var_name, '=', start_values[var_name]
+                        if ( True == verbose ): _print( '[DEBUG] Added start value to model description: ', var_name, '=', start_values[var_name] )
                 else:
                         scalar_variable_description = scalar_variable_description.replace( '__START_VALUE__', '' )
                 output_val_ref += 1
@@ -129,7 +139,7 @@ def generateMexFMU(
         #
 
         # URI of MATLAB main executable (matlab.exe).
-        matlab_exe_uri = urlparse.urljoin( 'file:', urllib.pathname2url( matlab_install_dir ) ) + '/bin/win32/matlab.exe'
+        matlab_exe_uri = _urljoin( 'file:', _pathname2url( matlab_install_dir ) ) + '/bin/win32/matlab.exe'
         model_description_footer = model_description_footer.replace( '__MATLAB_EXE_URI__', matlab_exe_uri )
 
         # Input script file.
@@ -142,7 +152,7 @@ def generateMexFMU(
                 additional_files_description = ''
                 for file_name in optional_files:
                         additional_files_description += '\n\t\t\t\t<File file=\"fmu://' + os.path.basename( file_name ) + '\"/>'
-                        if ( True == verbose ): print '[DEBUG] Added additional file to model description: ', os.path.basename( file_name )
+                        if ( True == verbose ): _print( '[DEBUG] Added additional file to model description: ', os.path.basename( file_name ) )
                 additional_files_description += '\n\t\t\t'
                 model_description_footer = model_description_footer.replace( '__ADDITIONAL_FILES__', additional_files_description )
 
@@ -163,7 +173,7 @@ def generateMexFMU(
         # Check if batch file for build process exists.
         build_process_batch_file = matlab_fmu_root_dir + '\\build.bat'
         if ( False == os.path.isfile( build_process_batch_file ) ):
-                print '\n[ERROR] Could not find file', build_process_batch_file
+                _print( '\n[ERROR] Could not find file', build_process_batch_file )
                 raise Exception( 8 )
 
         # Compile FMU shared library.
@@ -175,8 +185,8 @@ def generateMexFMU(
 
         # Check if batch script has executed successfully.
         if ( False == os.path.isfile( fmu_shared_library_name ) ):
-		print '\n[ERROR] Not able to create shared library (%s).' % fmu_shared_library_name
-		raise Exception( 16 )
+                _print( '\n[ERROR] Not able to create shared library:', fmu_shared_library_name )
+                raise Exception( 16 )
 
         # Check if working directory for FMU creation already exists.
         if ( True == os.path.isdir( fmi_model_identifier ) ):
@@ -237,32 +247,32 @@ def retrieveLabelsFromFile( file_name, labels ):
                         var_type = var_type.strip(' "\'\t\n')
                         var_name = var_name.strip(' "\'\t\n')
                         if var_type not in [ 'Real', 'Integer', 'Boolean', 'String' ]:
-                                print '\n[ERROR] The type of variable', var_name, 'is not recognized:', var_type
+                                _print( '\n[ERROR] The type of variable', var_name, 'is not recognized:', var_type )
                                 sys.exit(8)
                         labels.append( [ var_type, var_name ] ) # Append to list of labels.
-                        
+
 
 # Helper function
 def usage():
         """Print the usage of this script when used as main program."""
-        print '\nABOUT:'
-        print 'This script generates FMUs for Co-Simulation (tool coupling) from MATLAB scripts with the help of '
-        print '\nUSAGE:'
-        print 'python mex_fmu_create.py [-h] [-v] [-I matlab_install_dir] -m model_id -s class_file_name [-i input_var_file] [-o output_var_file] [additional_file_1 ... additional_file_N] [var1=start_val1 ... varN=start_valN]'
-        print '\nREQUIRED ARGUMENTS:'
-        print '-m, --model-id=\t\tspecify FMU model identifier'
-        print '-s, --script=\tpath to MATLAB script'
-        print '\nOPTIONAL ARGUMENTS:'
-        print '-i, --input-var-file=\tspecify file containing list of input variable names'
-        print '-o, --output-var-file=\tspecify file containing list of output variable names'
-        print '-h, --help\t\tdisplay this information'
-        print '-v, --verbose\t\tturn on log messages'
-        print '-l, --litter\t\tdo not clean-up intermediate files'
-        print '-J, --useJVM\t\tstart JVM together with MATLAB'
-        print '-F, --fixedStep\t\tenforce fixed simulation step size'
-        print '-I, --matlab-install-dir=\tpath to MATLAB installation directory (e.g., C:\\MATLAB)'
-        print '\nAdditional files may be specified (e.g., additional scripts or data files) that will be automatically copied to the FMU.'
-        print '\nStart values for variables may be defined. For instance, to set variable with name \"var1\" to value 12.34, specifiy \"var1=12.34\" in the command line as optional argument.'
+        _print( '\nABOUT:' )
+        _print( 'This script generates FMUs for Co-Simulation (tool coupling) from MATLAB scripts with the help of ' )
+        _print( '\nUSAGE:' )
+        _print( 'python mex_fmu_create.py [-h] [-v] [-I matlab_install_dir] -m model_id -s class_file_name [-i input_var_file] [-o output_var_file] [additional_file_1 ... additional_file_N] [var1=start_val1 ... varN=start_valN]' )
+        _print( '\nREQUIRED ARGUMENTS:' )
+        _print( '-m, --model-id=\t\tspecify FMU model identifier' )
+        _print( '-s, --script=\tpath to MATLAB script' )
+        _print( '\nOPTIONAL ARGUMENTS:' )
+        _print( '-i, --input-var-file=\tspecify file containing list of input variable names' )
+        _print( '-o, --output-var-file=\tspecify file containing list of output variable names' )
+        _print( '-h, --help\t\tdisplay this information' )
+        _print( '-v, --verbose\t\tturn on log messages' )
+        _print( '-l, --litter\t\tdo not clean-up intermediate files' )
+        _print( '-J, --useJVM\t\tstart JVM together with MATLAB' )
+        _print( '-F, --fixedStep\t\tenforce fixed simulation step size' )
+        _print( '-I, --matlab-install-dir=\tpath to MATLAB installation directory (e.g., C:\\MATLAB)' )
+        _print( '\nAdditional files may be specified (e.g., additional scripts or data files) that will be automatically copied to the FMU.' )
+        _print( '\nStart values for variables may be defined. For instance, to set variable with name \"var1\" to value 12.34, specifiy \"var1=12.34\" in the command line as optional argument.' )
 
 
 # Main function
@@ -270,7 +280,7 @@ if __name__ == "__main__":
 
         if ( None == os.getenv( 'MATLAB_FMIPP_ROOT' ) ):
 		        warning = '\n[WARNING] Environment variable "MATLAB_FMIPP_ROOT" is not defined!\n'
-		        print warning
+		        _print( warning )
 
         # FMI model identifier.
         fmi_model_identifier = None
@@ -301,7 +311,7 @@ if __name__ == "__main__":
 
         # Litter flag.
         litter = False
-		
+
         # Flag for starting MATLAB with/without JVM.
         use_jvm = False
 
@@ -314,7 +324,7 @@ if __name__ == "__main__":
                 options_definition_long = [ "verbose", "help", "litter", "useJVM", "fixedStep", "model-id=", 'class=', 'matlab-install-dir=', 'input-var-file=', 'output-var-file=' ]
                 options, extra = getopt.getopt( sys.argv[1:], options_definition_short, options_definition_long )
         except getopt.GetoptError as err:
-                print str( err )
+                _print( str( err ) )
                 usage()
                 sys.exit(1)
 
@@ -344,55 +354,55 @@ if __name__ == "__main__":
 
         # Check if FMI model identifier has been specified.
         if ( None == fmi_model_identifier ):
-                print '\n[ERROR] No FMU model identifier specified!'
+                _print( '\n[ERROR] No FMU model identifier specified!' )
                 usage()
                 sys.exit(2)
 
         # Check if MATLAB class definition file has been specified.
         if ( None == class_file_name ):
-                print '\n[ERROR] No MATLAB class definition file specified!'
+                _print( '\n[ERROR] No MATLAB class definition file specified!' )
                 usage()
                 sys.exit(3)
         elif ( False == os.path.isfile( class_file_name ) ): # Check if specified class definition file exists.
-                print '\n[ERROR] Invalid MATLAB class definition file:', class_file_name
+                _print( '\n[ERROR] Invalid MATLAB class definition file:', class_file_name )
                 usage()
                 sys.exit(4)
-        
+
         # No MATLAB install directory provided.
         if ( None == matlab_install_dir ):
-                print '\n[ERROR] Invalid MATLAB install dir:', matlab_install_dir
+                _print( '\n[ERROR] Invalid MATLAB install dir:', matlab_install_dir )
                 usage()
                 sys.exit(5)
 
         # Check if specified MATLAB install directory exists.
         if ( False == os.path.isdir( matlab_install_dir ) ):
-                print '\n[WARNING] MATLAB install directory does not exist:', matlab_install_dir
-        
+                _print( '\n[WARNING] MATLAB install directory does not exist:', matlab_install_dir )
+
         # Retrieve additional files from command line arguments.
         for item in extra:
                 if "=" in item:
                         start_value_pair = item.split( '=' )
                         varname = start_value_pair[0].strip(' "\n')
                         value = start_value_pair[1].strip(' "\n')
-                        if ( True == verbose ): print '[DEBUG] Found start value:', varname, '=', value
+                        if ( True == verbose ): _print( '[DEBUG] Found start value:', varname, '=', value )
                         start_values[varname] = value;
                 elif ( True == os.path.isfile( item ) ): # Check if this is an additional input file.
                         optional_files.append( item )
-                        if ( True == verbose ): print '[DEBUG] Found additional file:', item
+                        if ( True == verbose ): _print( '[DEBUG] Found additional file:', item )
                 else:
-                        print '\n[ERROR] Invalid input argument:', item
+                        _print( '\n[ERROR] Invalid input argument:', item )
                         usage()
                         sys.exit(7)
 
         if ( True == verbose ):
-                print '[DEBUG] FMI model identifier:', fmi_model_identifier
-                print '[DEBUG] MATLAB class definition:', class_file_name 
-                print '[DEBUG] MATLAB install directory:', matlab_install_dir
-                if True == use_jvm: print '[DEBUG] Using JVM.'
-                if True == fixed_step: print '[DEBUG] Enforce fixed step size.'
-                if 0 != len( optional_files ): print '[DEBUG] Additional files:'
+                _print( '[DEBUG] FMI model identifier:', fmi_model_identifier )
+                _print( '[DEBUG] MATLAB class definition:', class_file_name )
+                _print( '[DEBUG] MATLAB install directory:', matlab_install_dir )
+                if True == use_jvm: _print( '[DEBUG] Using JVM.' )
+                if True == fixed_step: _print( '[DEBUG] Enforce fixed step size.' )
+                if 0 != len( optional_files ): _print( '[DEBUG] Additional files:' )
                 for file_name in optional_files:
-                        print '\t', file_name
+                        _print( '\t', file_name )
 
         # Lists containing the FMI input and output variable names.
         fmi_input_vars = []
@@ -402,17 +412,17 @@ if __name__ == "__main__":
         if ( None != input_var_file_name ):
                 retrieveLabelsFromFile( input_var_file_name, fmi_input_vars );
         if ( True == verbose ):
-                print '[DEBUG] FMI input variables/parameters:'
+                _print( '[DEBUG] FMI input variables/parameters:' )
                 for var in fmi_input_vars:
-                        print '\t', var[0], ':', var[1]
+                        _print( '\t', var[0], ':', var[1] )
 
         # Parse file to retrieve FMI output variable names.
         if ( None != output_var_file_name ):
                 retrieveLabelsFromFile( output_var_file_name, fmi_output_vars );
         if ( True == verbose ):
-                print '[DEBUG] FMI output variables:'
+                _print( '[DEBUG] FMI output variables:' )
                 for var in fmi_output_vars:
-                        print '\t', var[0], ':', var[1]
+                        _print( '\t', var[0], ':', var[1] )
 
         try:
                 generateMexFMU(
@@ -428,5 +438,5 @@ if __name__ == "__main__":
                         fixed_step )
         except Exception as e:
                 sys.exit( e.args[0] )
-        
-        if ( True == verbose ): print "[DEBUG] FMU created successfully!"                       
+
+        if ( True == verbose ): _print( "[DEBUG] FMU created successfully!" )
