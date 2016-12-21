@@ -1,1 +1,61 @@
-\chapter{Exporting \trnsys models as FMUs}
+\chapter{Exporting \matlab scripts as FMUs}
+
+\section{Class FMIAdapter}
+
+The functionality of \matlab can be made available as FMU for Co-Simulation (version 1.0) with the help of class \texttt{FMIAdapter} (contained in package \texttt{fmipputils}).
+This class defines two abstract methods that have to be implemented by the user:
+\begin{itemize}
+
+  \item Method \texttt{init( obj, currentCommunicationPoint )} is intended to initialize input/output variables and parameters needed for co-simulation.
+  Optionally, a fixed simulation time step can be specified.
+
+  \item Method \texttt{doStep(  obj, currentCommunicationPoint, communicationStepSize )} is called at every simulation step (as requested by the master algorithm).
+\end{itemize}
+By deriving a new class from \texttt{class FMIAdapter} and implementing these two methods, virtually all functionality of \matlab can be made available via an FMU for Co-Simulation.
+When using such an FMU, \matlab is started in the background and synchronized to the master algorithm.
+
+For initializing input/output variables and parameters of type \texttt{fmiReal}, class \texttt{FMIAdapter} provides the following methods:
+\begin{itemize}
+  \item \texttt{function defineRealParameters( obj, parameterNames )}
+  \item \texttt{function defineRealInputs( obj, inputVariableNames )}
+  \item \texttt{function defineRealOutputs( obj, outputVariableNames )}
+\end{itemize}
+Their input arguments are cell arrays containing the corresponding names as string.
+For initializing input/output variables and parameters of other types (\texttt{fmiInteger}, \texttt{fmiBoolean}, \texttt{fmiString}) corresponding functions are available.
+
+Fixed time step simulation can be enforced by calling the following method:
+\begin{itemize}
+  \item \texttt{function enforceTimeStep( obj, stepSize )}
+\end{itemize}
+
+For getting the values of parameters and input variables as well as setting the values  of output variables of type \texttt{fmiReal}, class \texttt{FMIAdapter} provides another set of methods:
+\begin{itemize}
+  \item \texttt{function realParameterValues = getRealParameterValues( obj )}
+  \item \texttt{function realInputValues = getRealInputValues( obj )}
+  \item \texttt{function setRealOutputValues( obj, realOutputValues )}
+\end{itemize}
+The order in which values are retrieved or set corresponds to the order in which they were defined (see methods above).
+For retrieving or setting input/output variables and parameters of other types (\texttt{fmiInteger}, \texttt{fmiBoolean}, \texttt{fmiString}) corresponding functions are available.
+
+For instance, when defining two input variables called \texttt{X} and \texttt{Y}, the following function call has to be issued in the \texttt{init} method:
+\begin{verbatim}
+  obj.defineRealInputs( { "X", "Y" } );
+\end{verbatim}
+In the \texttt{doStep} methods, the values corresponding to these input variables can be retrieved like this:
+\begin{verbatim}
+  [ x, y ] = obj.getRealInputValues();
+\end{verbatim}
+
+
+\section{Creating an FMU}
+
+Creating an FMU from a class inherited from \texttt{FMIAdapter} can be done by calling function \texttt{createFMU}:
+\begin{itemize}
+  \item \texttt{function createFMU( modelID, classFileName, extra, useJVM )}
+  \begin{itemize}
+    \item \texttt{modelID} (string): Specifies the FMU's model identifier.
+    \item \texttt{classFileName} (string): Specifies the path to the file containing the class definition.
+    \item \texttt{extra} (string): Specifies additional files (data files, \matlab scripts, etc.) that should be added to the FMU.
+    \item \texttt{useJVM} (boolean): This optional input argument specifies whether the Java Virtual Machine (\matlab GUI) should be started when using the FMU (default: \texttt{false}).
+  \end{itemize}
+\end{itemize}

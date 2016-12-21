@@ -3,8 +3,42 @@
 \section{Software requirements}
 
 The \fmipp \matlab FMU Export Utility is intended to run on Windows~7~(32-bit).
+A working \matlab installation is required.
+The toolbox has been tested with \matlab~R2013a.
+
+
+When exporting \matlab functionality as an FMU for Co-Simulation, a working \matlab installation is also required on the system where the FMU is used (with a valid license for all the \matlab toolboxes that are used by the FMU).
+Furthermore, for the export of FMUs the following tools need to be installed:
+\begin{itemize}
+
+  \item \href{https://www.microsoft.com/en-us/download/details.aspx?id=44914}{Microsoft Visual Studio Express 2013}
+
+  \item \href{https://www.python.org/}{Python~2}
+  
+\end{itemize}
 
 
 \section{Installation}
 \label{sec:install}
 
+To install the \fmipp \matlab Toolbox proceed as follows:
+\begin{itemize}
+  \item Download the latest version of the toolbox as ZIP-file from the \href{https://sourceforge.net/projects/matlab-fmu/files/latest/download}{download page}.
+  
+  \item Unzip the installation file into any sub directory (referred to as the \emph{installation folder}).
+  
+  \item Create a new Windows environment variable called \texttt{MATLAB\_FMIPP\_ROOT} that points to the installation folder.
+  See for instance \href{http://www.computerhope.com/issues/ch000549.htm}{here} for instructions how to do that.
+  
+  \item Whenever starting \matlab, run the script \texttt{setup.m} in the installation folder.
+\end{itemize}
+
+For instance, after unzipping the toolbox to \texttt{C:\\Program~Files\\matlab-fmipp}, specify this path as the value of environment variable \texttt{MATLAB\_FMIPP\_ROOT}.
+Whenever you start \matlab, change to the installation folder:
+\begin{verbatim}
+  >> cd 'C:\Program Files\matlab-fmipp'
+\end{verbatim}
+Then run the setup script by typing:
+\begin{verbatim}
+  >> setup
+\end{verbatim}
