@@ -103,7 +103,7 @@ if __name__ == "__main__":
         sys.exit()
     
     # Define release name.
-    release_name = 'matlab-fmu-' + sys.argv[1]
+    release_name = 'matlab-fmipp-' + sys.argv[1]
 
     # Define release file name.
     release_file_name = release_name + '.zip'

@@ -25,12 +25,17 @@ files_from_fmipp = [
 
 # Additional list of files (including relative path) from the repository that are part of the release.
 additional_files = [
-    'matlab_fmu_create.py', # script for creating a TRNSYS FMU
+    'setup.m', # setup script
+    'matlab_fmu_create.py', # script for creating an FMU
     'build.bat', # batch script for FMU compilation
     'license\\BOOST_SOFTWARE_LICENSE.txt',
     'license\\FMIPP_LICENSE.txt',
     'license\\MATLAB_FMU_LICENSE.txt',
-    #'test\\...',
+    'test\\import\\StandaloneRadiator.m',
+    'test\\import\\StandaloneRadiator.mo',
+	'test\\export\\SimpleController.m',
+	'test\\export\\ControlledRadiator.mo',
+	'test\\export\\create_fmu.m',
 ]
 
 # List of files (without binaries and docs) that are part of the release.
@@ -50,12 +55,12 @@ resources_from_fmipp_swig = {
 
 # List of binaries that are not provided by the repository (see also README in 'binaries' subfolder).
 required_binaries = [
-    'binaries\\libboost_date_time-vc100-mt-1_58.lib', # static BOOST date-time library
-    'binaries\\libboost_filesystem-vc100-mt-1_58.lib', # static BOOST Filesystem library
-    'binaries\\libboost_system-vc100-mt-1_58.lib', # static BOOST System libarary
+    'binaries\\libboost_date_time-vc120-mt-1_58.lib', # static BOOST date-time library
+    'binaries\\libboost_filesystem-vc120-mt-1_58.lib', # static BOOST Filesystem library
+    'binaries\\libboost_system-vc120-mt-1_58.lib', # static BOOST System libarary
     'binaries\\libfmipp_fmu_frontend.lib', # static library containing pre-compiled parts of the front end
-	# MEX FILES
-	# FMI++ DLLs
+    'packages\\lib\\sundials_cvode.dll', # SUNDIALS library
+    'packages\\lib\\sundials_nvecserial.dll', # SUNDIALS library
 ]
 
 # The compiled documentation in PDF format (not part of the repository).

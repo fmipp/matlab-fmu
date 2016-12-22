@@ -1,5 +1,5 @@
 
-The FMI++ MATLAB Export Utility License
+The FMI++ MATLAB Toolbox License
 
 Copyright (c) 2016, AIT Austrian Institute of Technology GmbH.
 All rights reserved.

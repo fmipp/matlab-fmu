@@ -9,7 +9,7 @@ model_name = 'StandaloneRadiator';
 uri_to_extracted_fmu = 'file:///C:/Development/matlab-fmipp/test/import/StandaloneRadiator';
 
 % Specify the FMU's configuration parameters.
-logging_on = fmippim.fmiFalse();        % Turn verbosity on/off.
+logging_on = fmippim.fmiTrue();        % Turn verbosity on/off.
 stop_before_event = fmippim.fmiTrue();  % Stop integration directly before an event occurs.
 event_search_precision = 1e-2;          % Set precision for searching for events.
 integrator_type = fmippim.bdf();        % Specify Sundials CVODE solver (Backward Differentiation Formula).
@@ -43,6 +43,8 @@ integrator_stepsize = stepsize/10;
 t = 0;
 tstop = 4 * 60 * 60;
 
+result = [];
+
 % Simulation loop.
 while t < tstop
     % Integrate the FMU: try to make a full step, but stop in case an event is detected.
@@ -57,5 +59,8 @@ while t < tstop
         fmu.setRealValue( 'Pheat', 1e3 );  % turn on heating
     end
 
-	disp( [ t/3600 T ] );
+	result = vertcat( result, [ t/3600 T ] );
 end
+
+% Plot the results.
+scatter( result(:,1), result(:,2) );

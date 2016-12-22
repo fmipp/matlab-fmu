@@ -1,1 +1,134 @@
-\chapter{Exporting \trnsys models as FMUs}
+\chapter{Importing FMUs into \matlab}
+
+
+\section{About}
+
+The \href{https://fmi-standard.org/}{Functional Mock-up Interface}~(FMI) specification intentionally provides only the most essential and fundamental functionalities in the form of a C interface.
+On the one hand, this increases flexibility in use and portability to virtually any platform.
+On the other hand, such a low-level approach implies several prerequisites a simulation tool has to fulfil in order to be able to utilize such an FMI component.
+
+The \fmipp \matlab Toolbox provides a wrapper for the \href{http://fmipp.sourceforge.net}{\fmipp Library}, which intends to bridge the gap between the basic functionality provided by the FMI specification and the typical requirements of simulation tools.
+The \fmipp Library provides high-level functionality that eases the handling and manipulation of FMUs, such as numerical integration, advanced event-handling or state predictions.
+This allows FMUs to be used more easily, e.g., integrating it into fixed time step or discrete event simulations.
+
+This toolbox provides a stand-alone version of the \matlab interface for the \href{http://fmipp.sourceforge.net}{\fmipp Library} for Windows.
+For other operating systems, this package can be built from \href{http://sourceforge.net/p/fmipp/code/ci/master/tree/}{source}.
+
+
+\section{Example Usage}
+
+The \emph{fmippim} package provides classes that allow to manipulate FMUs for ModelExchange and for Co-Simulation.
+In the following, short descriptions and code snippets of the provided functionality demonstrate their usage.
+More extensive background information can be found in the documentation of the \href{http://fmipp.sourceforge.net}{\fmipp Library}
+
+
+\subsection{Loading the library}
+
+FMUs are basically ZIP archives.
+Before they can be used, they have to be extracted (unzipped), for instance with the help of \matlab's \texttt{unzip} function.
+To load the library type:
+
+\begin{verbatim}
+  fmippPath = getenv( 'MATLAB_FMIPP_ROOT' );
+  addpath( genpath( fullfile( fmippPath, 'packages' ) ) );
+\end{verbatim}
+
+\subsection{Classes FMUModelExchangeV1 and FMUModelExchangeV2}
+
+The most obvious obstacle for using a bare FMU for ModelExchange is its lack of an integrator.
+For this reason, classes \texttt{FMUModelExchangeV1} and \texttt{FMUModelExchangeV2} provide generic methods for the integration of FMUs for ModelExchange for FMI Version 1.0 and 2.0, respectively.
+Instances of these classes own the actual FMU instance and are able to advance the current state up to a specified point in time, including the
+proper handling of FMU-internal events.
+The classes also provide functionality for convenient input and output handling.
+
+The following example demonstrates the basic usage of class \texttt{FMUModelExchangeV1} (usage of class \texttt{FMUModelExchangeV2} is analogous).
+
+First, specify the FMU's model name and the path to the unzipped FMU (as URI):
+\begin{verbatim}
+model_name = 'StandaloneRadiator';
+uri_to_extracted_fmu = 'file:///C:/path/to/unzipped/StandaloneRadiator';
+\end{verbatim}
+Then, specify the FMU's configuration parameters and load the FMU:
+\begin{verbatim}
+logging_on = fmippim.fmiTrue();
+stop_before_event = fmippim.fmiTrue();
+event_search_precision = 1e-2;
+integrator_type = fmippim.bdf(); % CVODE solver (Backward Differentiation Formula).
+
+fmu = fmippim.FMUModelExchangeV1( uri_to_extracted_fmu,
+                                  model_name,
+                                  logging_on,
+                                  stop_before_event,
+                                  event_search_precision,
+                                  integrator_type )
+\end{verbatim}
+Instantiate the FMU:
+\begin{verbatim}
+status = fmu.instantiate( 'standalone_radiator1' )
+if status ~= fmippim.fmiOK(); error( 'instantiation not successful' ); end
+\end{verbatim}
+Set value of parameters:
+\begin{verbatim}
+Tlow = 82.0;
+status = fmu.setRealValue( 'Tlow', Tlow )
+if status ~= fmippim.fmiOK(); error( 'setRealValue not successful' ); end
+\end{verbatim}
+Initialize the FMU.
+\begin{verbatim}
+status = fmu.initialize()
+if status ~= fmippim.fmiOK(); error( 'initialzation not successful' ); end
+\end{verbatim}
+Specify default step size of one integration step and the internal integrator step size, then start the simulation loop. The integrator always tries to make a full step, but it stops in case an event is detected.
+\begin{verbatim}
+stepsize = 300;
+integrator_stepsize = stepsize/10;
+
+t = 0;
+tstop = 4 * 60 * 60;
+
+while t < tstop
+    t = fmu.integrate( t + stepsize, integrator_stepsize );
+
+    T = fmu.getRealValue( 'T' );
+    derT = fmu.getRealValue( 'derT' );
+
+    if ( ( abs( T - Thigh ) < 1e-2 ) && ( derT > 0 ) )
+        fmu.setRealValue( 'Pheat', 0.0 );  % turn off heating
+    elseif ( ( abs( T - Tlow ) < 1e-2 ) && ( derT < 0 ) )
+        fmu.setRealValue( 'Pheat', 1e3 );  % turn on heating
+    end
+end
+\end{verbatim}
+	
+The integration algorithms provided by ODEINT and SUNDIALS can be chosen with an appropriate flag in the constructor (see example above).
+The following algorithms are available:
+
+\begin{center}
+
+\begin{tabular}{|l|l|l|l|l|}
+\hline 
+Stepper & Name & Suite & Order & Adaptive \\ 
+\hline 
+eu & Explicit Euler & ODEINT & 1 & No  \\ 
+\hline 
+rk & 4th order Runge-Kutta & ODEINT & 4 & No  \\ 
+\hline 
+abm & Adams-Bashforth-Moulton & ODEINT & 8 & No  \\ 
+\hline 
+ck & Cash-Karp & ODEINT & 5 & Yes  \\ 
+\hline 
+dp & Dormand-Prince & ODEINT & 5 & Yes  \\ 
+\hline 
+fe & Fehlberg & ODEINT & 8 & Yes  \\ 
+\hline 
+bs & Bulirsch Stoer & ODEINT & 1-16 & Yes  \\ 
+\hline 
+ro & Rosenbrock & ODEINT & 4 & Yes  \\ 
+\hline 
+bdf & Backward Differentiation Formula & SUNDIALS & 1-5 & Yes  \\ 
+\hline 
+abm2 & Adams-Bashforth-Moulton & SUNDIALS & 1-12 & Yes \\ 
+\hline 
+\end{tabular} 
+
+\end{center}
