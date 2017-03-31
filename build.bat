@@ -26,7 +26,7 @@ REM Setup command line tools from Microsoft Visual Studio Express 2013.
 CALL "%VS120COMNTOOLS%vsvars32.bat" >> %LOG_FILE%
 
 REM Define FMI export functions implementation file.
-SET FMI_FUNCTIONS_IMPLEMENTATION="%~DP0\sources\export\functions\fmiFunctions.cpp"
+SET FMI_FUNCTIONS_IMPLEMENTATION="%~DP0\sources\export\functions\fmi_v1.0\fmiFunctions.cpp"
 
 REM Define include flags for CL.
 SET INCLUDE_FLAGS=/I"%~DP0\sources" /I"%~DP0\sources\export\include"
