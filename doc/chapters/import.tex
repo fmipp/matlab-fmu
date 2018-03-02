@@ -37,11 +37,11 @@ To load the library type:
 
 The most obvious obstacle for using a bare FMU for ModelExchange is its lack of an integrator.
 For this reason, classes \texttt{FMUModelExchangeV1} and \texttt{FMUModelExchangeV2} provide generic methods for the integration of FMUs for ModelExchange for FMI Version 1.0 and 2.0, respectively.
-Instances of these classes own the actual FMU instance and are able to advance the current state up to a specified point in time, including the
-proper handling of FMU-internal events.
+Instances of these classes own the actual FMU instance and are able to advance the current state up to a specified point in time, including the proper handling of FMU-internal events.
 The classes also provide functionality for convenient input and output handling.
 
 The following example demonstrates the basic usage of class \texttt{FMUModelExchangeV1} (usage of class \texttt{FMUModelExchangeV2} is analogous).
+The example is also available as a \matlab script in folder \emph{test/import\_me}, together with a Modelica model that can be translated to an FMU for ModelExchange for testing it.
 
 First, specify the FMU's model name and the path to the unzipped FMU (as URI):
 \begin{verbatim}
@@ -132,3 +132,11 @@ abm2 & Adams-Bashforth-Moulton & SUNDIALS & 1-12 & Yes \\
 \end{tabular} 
 
 \end{center}
+
+
+\subsection{Class FMUCoSimulation}
+
+An example anlogous to the one above but using an FMU for Co-Simulation is available as a \matlab script in folder \emph{test/import\_cs}.
+The folder also contains a Modelica model that can be translated to an FMU for Co-Simulation for testing it.
+
+
