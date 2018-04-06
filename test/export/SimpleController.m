@@ -10,11 +10,6 @@ classdef SimpleController < fmipputils.FMIAdapter
 
 
 	methods
-	
-		% Full constructor.
-        function obj = SimpleController()
-            obj@fmipputils.FMIAdapter();
-        end
 		
 		function init( obj, currentCommunicationPoint )
 		
