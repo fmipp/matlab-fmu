@@ -1,0 +1,215 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Import and use an FMU for Model Exchange in a MATLAB script</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-04-06"><meta name="DC.source" content="SimpleController.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Import and use an FMU for Model Exchange in a MATLAB script</h1><!--introduction--><p>This script demonstrates how to:</p><div><ul><li>import an FMU for Model Exchange (FMI version 2.0) in a MATLAB script</li><li>instantiate and initialize and FMU</li><li>get/set values from/to an FMU in a simulation loop</li></ul></div><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Load the FMI++ interface</a></li><li><a href="#2">Import the FMU</a></li><li><a href="#3">Instantiate and initialize the FMU</a></li><li><a href="#4">Run a simulation</a></li><li><a href="#5">Plot the results</a></li></ul></div><h2>Load the FMI++ interface<a name="1"></a></h2><pre class="codeinput">fmippPath = getenv( <span class="string">'MATLAB_FMIPP_ROOT'</span> );
+addpath( genpath( fullfile( fmippPath, <span class="string">'packages'</span> ) ) );
+</pre><h2>Import the FMU<a name="2"></a></h2><pre class="codeinput"><span class="comment">% Specify the FMU's model name.</span>
+model_name = <span class="string">'ControlledRadiator'</span>;
+
+<span class="comment">% Specify the path to the extracted (unzipped) FMU.</span>
+uri_to_extracted_fmu = <span class="string">'file:///C:/Development/matlab-fmipp/tutorial/import/ControlledRadiator'</span>;
+
+<span class="comment">% Specify the FMU's configuration parameters.</span>
+logging_on = fmippim.fmi2True(); <span class="comment">% Turn verbosity on/off.</span>
+stop_before_event = false;       <span class="comment">% Do not stop integration when internal events occur.</span>
+event_search_precision = 1e-2;   <span class="comment">% Set precision for searching for events.</span>
+integrator_type = fmippim.bdf(); <span class="comment">% Specify Sundials CVODE solver (Backward Differentiation Formula).</span>
+
+<span class="comment">% Import the FMU.</span>
+fmu = fmippim.FMUModelExchangeV2( uri_to_extracted_fmu, <span class="keyword">...</span>
+             model_name, logging_on, stop_before_event, <span class="keyword">...</span>
+             event_search_precision, integrator_type );
+</pre><h2>Instantiate and initialize the FMU<a name="3"></a></h2><pre class="codeinput"><span class="comment">% Instantiate the FMU.</span>
+status = fmu.instantiate( <span class="string">'controlled_radiator1'</span> );
+<span class="keyword">if</span> status ~= fmippim.fmiOK(); error( <span class="string">'instantiation not successful'</span> ); <span class="keyword">end</span>
+
+<span class="comment">% Initialize the FMU.</span>
+status = fmu.initialize();
+<span class="keyword">if</span> status ~= fmippim.fmiOK(); error( <span class="string">'initialization not successful'</span> ); <span class="keyword">end</span>
+</pre><h2>Run a simulation<a name="4"></a></h2><pre class="codeinput"><span class="comment">% Specify default step size of one integration step and the internal integrator step size.</span>
+stepsize = 60;
+integrator_stepsize = stepsize/10;
+
+<span class="comment">% Specify the simulation time and simulation stop time.</span>
+t = 0;
+tstop = 24 * 60 * 60;
+
+<span class="comment">% Specify upper and lower threshold of hysteresis controller.</span>
+Tlow = 70;
+Thigh = 90;
+
+<span class="comment">% For storing results.</span>
+result = [];
+
+<span class="comment">% Simulation loop.</span>
+<span class="keyword">while</span> t &lt; tstop
+    <span class="comment">% Integrate the model.</span>
+    t = fmu.integrate( t + stepsize, integrator_stepsize );
+
+    <span class="comment">% Retrieve value for output variable T.</span>
+    T = fmu.getRealValue( <span class="string">'T'</span> );
+
+    <span class="comment">% Hysteresis controller.</span>
+    <span class="keyword">if</span> ( T &gt;= Thigh )
+        fmu.setRealValue( <span class="string">'Pheat'</span>, 0.0 ); <span class="comment">% turn off heating</span>
+    <span class="keyword">elseif</span> ( T &lt;= Tlow )
+        fmu.setRealValue( <span class="string">'Pheat'</span>, 1e3 ); <span class="comment">% turn on heating</span>
+    <span class="keyword">end</span>
+
+    result = vertcat( result, [ t/3600 T ] );
+<span class="keyword">end</span>
+</pre><h2>Plot the results<a name="5"></a></h2><pre class="codeinput">plot( result(:,1), result(:,2) );
+title( <span class="string">'simulation results'</span> );
+xlabel( <span class="string">'time in h'</span> );
+ylabel( <span class="string">'temperature in &deg;C'</span> );
+</pre><img vspace="5" hspace="5" src="SimpleController_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Import and use an FMU for Model Exchange in a MATLAB script
+% This script demonstrates how to:
+%
+% * import an FMU for Model Exchange (FMI version 2.0) in a MATLAB script
+% * instantiate and initialize and FMU
+% * get/set values from/to an FMU in a simulation loop
+
+%% Load the FMI++ interface
+
+fmippPath = getenv( 'MATLAB_FMIPP_ROOT' );
+addpath( genpath( fullfile( fmippPath, 'packages' ) ) );
+
+%% Import the FMU
+
+% Specify the FMU's model name.
+model_name = 'ControlledRadiator';
+
+% Specify the path to the extracted (unzipped) FMU.
+uri_to_extracted_fmu = 'file:///C:/Development/matlab-fmipp/test/tutorial/import/ControlledRadiator';
+
+% Specify the FMU's configuration parameters.
+logging_on = fmippim.fmi2True(); % Turn verbosity on/off.
+stop_before_event = false;       % Do not stop integration when internal events occur.
+event_search_precision = 1e-2;   % Set precision for searching for events.
+integrator_type = fmippim.bdf(); % Specify Sundials CVODE solver (Backward Differentiation Formula).
+
+% Import the FMU.
+fmu = fmippim.FMUModelExchangeV2( uri_to_extracted_fmu, ...
+             model_name, logging_on, stop_before_event, ...
+             event_search_precision, integrator_type );
+
+%% Instantiate and initialize the FMU
+
+% Instantiate the FMU.
+status = fmu.instantiate( 'controlled_radiator1' );
+if status ~= fmippim.fmiOK(); error( 'instantiation not successful' ); end
+
+% Initialize the FMU.
+status = fmu.initialize();
+if status ~= fmippim.fmiOK(); error( 'initialization not successful' ); end
+
+%% Run a simulation
+
+% Specify default step size of one integration step and the internal integrator step size.
+stepsize = 60;
+integrator_stepsize = stepsize/10;
+
+% Specify the simulation time and simulation stop time.
+t = 0;
+tstop = 24 * 60 * 60;
+
+% Specify upper and lower threshold of hysteresis controller.
+Tlow = 70;
+Thigh = 90;
+
+% For storing results.
+result = [];
+
+% Simulation loop.
+while t < tstop
+    % Integrate the model.
+    t = fmu.integrate( t + stepsize, integrator_stepsize );
+
+    % Retrieve value for output variable T.
+    T = fmu.getRealValue( 'T' ); 
+
+    % Hysteresis controller.
+    if ( T >= Thigh )
+        fmu.setRealValue( 'Pheat', 0.0 ); % turn off heating
+    elseif ( T <= Tlow )
+        fmu.setRealValue( 'Pheat', 1e3 ); % turn on heating
+    end
+
+    result = vertcat( result, [ t/3600 T ] );
+end
+
+%% Plot the results
+
+plot( result(:,1), result(:,2) );
+title( 'simulation results' );
+xlabel( 'time in h' );
+ylabel( 'temperature in °C' );
+##### SOURCE END #####
+--></body></html>
