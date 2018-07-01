@@ -1,11 +1,11 @@
-This directory should contain the following libraries (all compiled in Release mode with Microsoft Visual Studio Express 12):
+This directory should contain the following libraries (all compiled in Release mode with Visual Studio 15):
 - fmippex.dll
-- fmippexMEX.mexw32
+- fmippexMEX.mexw64
 - fmippim.dll
-- fmippimMEX.mexw32
+- fmippimMEX.mexw64
 - sundials_cvode.dll (SUNDIALS)
 - sundials_nvecserial.dll (SUNDIALS)
-- boost_filesystem-vc120-mt-1_58 (BOOST)
-- boost_system-vc120-mt-1_58 (BOOST)
-- msvcp120.dll (Visual Studio 2013 Redistributable)
-- msvcr120.dll (Visual Studio 2013 Redistributable)
+- boost_filesystem-vc140-mt-x64-1_68 (BOOST)
+- boost_system-vc140-mt-x64-1_68 (BOOST)
+- msvcp140.dll (Visual Studio 2015 Redistributable)
+- vcruntime140.dll (Visual Studio 2015 Redistributable)

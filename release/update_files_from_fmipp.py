@@ -1,6 +1,6 @@
 # ------------------------------------------------------------------------
 # Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.
-# All rights reserved. See file TRNSYS_FMU_LICENSE.txt for details.
+# All rights reserved. See file MATLAB_FMU_LICENSE.txt for details.
 # ------------------------------------------------------------------------
 
 ##########################################################################

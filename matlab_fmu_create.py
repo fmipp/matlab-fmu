@@ -142,7 +142,7 @@ def generateMexFMU(
         #
 
         # URI of MATLAB main executable (matlab.exe).
-        matlab_exe_uri = urlparse.urljoin( 'file:', urllib.pathname2url( matlab_install_dir ) ) + '/bin/win32/matlab.exe'
+        matlab_exe_uri = urlparse.urljoin( 'file:', urllib.pathname2url( matlab_install_dir ) ) + '/bin/win64/matlab.exe'
         model_description_footer = model_description_footer.replace( '__MATLAB_EXE_URI__', matlab_exe_uri )
 
         # Input script file.
@@ -196,7 +196,7 @@ def generateMexFMU(
                 shutil.rmtree( fmi_model_identifier, False )
 
         # Working directory path for the FMU DLL.
-        binaries_dir = os.path.join( fmi_model_identifier, 'binaries', 'win32' )
+        binaries_dir = os.path.join( fmi_model_identifier, 'binaries', 'win64' )
 
         # Create working directory (incl. sub-directories) for FMU creation.
         os.makedirs( binaries_dir )

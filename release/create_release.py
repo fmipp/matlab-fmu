@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.
-# All rights reserved. See file TRNSYS_FMU_LICENSE.txt for details.
+# All rights reserved. See file MATLAB_FMU_LICENSE.txt for details.
 # ----------------------------------------------------------------------
 
 ########################################################################
@@ -35,7 +35,7 @@ def zipfolder( path, relname, archive ):
             archive.write( p1, p2 )
 
 
-def checkFilesExist( doc_file, required_binaries, cwd ):
+def checkFilesExist( doc_file, cwd ):
     # Check if files from repository are available.
     for file in files_for_release:
         full_file_name = cwd + '\\..\\' + file
@@ -44,7 +44,7 @@ def checkFilesExist( doc_file, required_binaries, cwd ):
             return False
     
     # Check if additional binaries are available.
-    for file in required_binaries:
+    for file in required_external_binaries:
         full_file_name = cwd + '\\..\\' + file
         if ( False == os.path.isfile( full_file_name ) ):
             print( file, 'not found' )
@@ -57,7 +57,7 @@ def checkFilesExist( doc_file, required_binaries, cwd ):
             print( path, 'not found' )
             return False
 
-			# Check if documentation is available.
+    # Check if documentation is available.
     if ( False == os.path.isfile( cwd + '\\..\\' + doc_file ) ):
         print( doc_file, 'not found' )
         return False
@@ -73,7 +73,7 @@ def createRelease( release_file, release_name, cwd ):
         else:
             release_file.write( cwd + '\\..\\' + path, base_name + path )
     
-    for file in required_binaries:
+    for file in required_external_binaries:
         release_file.write( cwd + '\\..\\' + file, base_name + file )
     
     for path in resources_from_fmipp_swig:
@@ -99,11 +99,11 @@ if __name__ == "__main__":
         sys.exit()
     
     # Check if files exist.
-    if ( False == checkFilesExist( doc_file, required_binaries, cwd ) ):
+    if ( False == checkFilesExist( doc_file, cwd ) ):
         sys.exit()
     
     # Define release name.
-    release_name = 'matlab-fmipp-' + sys.argv[1]
+    release_name = 'matlab-fmipp_' + sys.argv[1]
 
     # Define release file name.
     release_file_name = release_name + '.zip'
