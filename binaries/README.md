@@ -2,6 +2,7 @@ This directory should contain the following libraries (all compiled in Release m
 
 From FMI++ (generated with the help of the Cmake project file in folder 'release'):
 - libfmipp_fmu_frontend.lib
+- fmi2.dll
 
 From BOOST 1.58.0 (e.g., from http://sourceforge.net/projects/boost/files/boost-binaries/):
 - libboost_date_time-vc140-mt-x64-1_68.lib

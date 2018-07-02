@@ -26,13 +26,13 @@ REM Setup command line tools from Microsoft Visual Studio Community 2015.
 CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64 >> %LOG_FILE%
 
 REM Define FMI export functions implementation file.
-SET FMI_FUNCTIONS_IMPLEMENTATION="%~DP0\sources\export\functions\fmi_v1.0\fmiFunctions.cpp"
+SET FMI_FUNCTIONS_IMPLEMENTATION="%~DP0\..\sources\export\functions\fmi_v1.0\fmiFunctions.cpp"
 
 REM Define include flags for CL.
-SET INCLUDE_FLAGS=/I"%~DP0\sources" /I"%~DP0\sources\export\include"
+SET INCLUDE_FLAGS=/I"%~DP0\..\sources" /I"%~DP0\..\sources\export\include"
 
 REM Define library path for CL.
-SET LIBRARY_PATH="%~DP0\binaries"
+SET LIBRARY_PATH="%~DP0\..\binaries"
 
 REM Compile FMI front end component with correct model identifier.
 CL /c %INCLUDE_FLAGS% /nologo /W3 /WX- /O2 /Ob2 /Oy- /D WIN32 /D _WINDOWS /D NDEBUG /D MODEL_IDENTIFIER=%MODEL_IDENTFIER% /D FRONT_END_TYPE=FMIComponentFrontEnd /D "FRONT_END_TYPE_INCLUDE=\"FMIComponentFrontEnd.h\"" /D _WINDLL /D _MBCS /Gm- /EHsc /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Gd /TP /analyze- /errorReport:queue %FMI_FUNCTIONS_IMPLEMENTATION% >> %LOG_FILE%

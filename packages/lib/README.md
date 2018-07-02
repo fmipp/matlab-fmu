@@ -1,4 +1,4 @@
-This directory should contain the following libraries (all compiled in Release mode with Visual Studio 15):
+This directory should contain the following libraries (all compiled in 64-bit Release mode with Visual Studio Community 2015):
 - fmippex.dll
 - fmippexMEX.mexw64
 - fmippim.dll

@@ -31,13 +31,18 @@ files_from_fmipp = [
 additional_files = [
    'setup.m', # setup script
    'matlab_fmu_create.py', # script for creating an FMU
-   'build.bat', # batch script for FMU compilation
    'license\\BOOST_SOFTWARE_LICENSE.txt',
    'license\\FMIPP_LICENSE.txt',
    'license\\MATLAB_FMU_LICENSE.txt',
    'packages\\+fmipputils\\createFMU.m',
    'packages\\+fmipputils\\FMIAdapter.m',
    'packages\\+fmipputils\\licenseInfo.m',
+   'scripts\\fmi1_build.bat', # batch script for FMU compilation (FMI 1.0)
+   'scripts\\__init__.py',
+   'scripts\\fmi1.py', # Python script for generating FMUs (FMI 1.0)
+   'scripts\\fmi2.py', # Python script for generating FMUs (FMI 2.0)
+   'scripts\\generate_fmu.py', # Python script for generating FMUs
+   'scripts\\utils.py', # Python helper script for generating FMUs
    'test\\import_cs\\StandaloneRadiatorCS.m',
    'test\\import_cs\\StandaloneRadiatorCS.mo',
    'test\\import_me\\StandaloneRadiatorME.m',
@@ -60,7 +65,8 @@ resources_from_fmipp_swig = {
    'packages\\lib\\fmippimMEX.mexw64' : 'import\\swig\\Release\\fmippimMEX.mexw64', # MEX wrapper for FMI++ import library
    'packages\\+fmippex' : 'export\\swig\\+fmippex', # scripts for accessing MEX wrapper
    'packages\\+fmippim' : 'import\\swig\\+fmippim', # scripts for accessing MEX wrapper
-   'binaries\\libfmipp_fmu_frontend.lib' : 'Release\\libfmipp_fmu_frontend.lib', # static library containing pre-compiled parts of the front end
+   'binaries\\fmi2.dll' : 'Release\\fmi2.dll', # dynamic library containing a complete front end (FMI 2.0)
+   'binaries\\libfmipp_fmu_frontend.lib' : 'Release\\libfmipp_fmu_frontend.lib', # static library containing pre-compiled parts of the front end (FMI 1.0)
    }
 
 # List of binaries that are not provided by the repository (see also README in 'binaries' subfolder).

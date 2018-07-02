@@ -51,10 +51,11 @@ In the \texttt{doStep} methods, the values corresponding to these input variable
 
 Creating an FMU from a class inherited from \texttt{FMIAdapter} can be done by calling function \texttt{createFMU}:
 \begin{itemize}
-  \item \texttt{function createFMU( modelID, classFileName, extra, useJVM )}
+  \item \texttt{function createFMU( modelID, classFileName, fmiVersion, extra, useJVM )}
   \begin{itemize}
     \item \texttt{modelID} (string): Specifies the FMU's model identifier.
     \item \texttt{classFileName} (string): Specifies the path to the file containing the class definition.
+    \item \texttt{fmiVersion} (string): Specifies the version of the FMU ('1' = FMI~v1.0, '2' = FMI~v2.0).
     \item \texttt{extra} (string): Specifies additional files (data files, \matlab scripts, etc.) that should be added to the FMU.
     \item \texttt{useJVM} (boolean): This optional input argument specifies whether the Java Virtual Machine (\matlab GUI) should be started when using the FMU (default: \texttt{false}).
   \end{itemize}

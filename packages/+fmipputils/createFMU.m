@@ -3,17 +3,18 @@
 % All rights reserved. See file FMIPP_LICENSE for details.
 % -------------------------------------------------------------------
 
-function createFMU( modelID, classFileName, extra, useJVM )
+function createFMU( modelID, classFileName, fmiVersion, extra, useJVM )
 % CREATEFMU  Create an FMU from a class derived from 'fmipputils.FMIAdapter'.
 %
-%   CREATEFMU( MODEL_ID, CLASS_FILE_NAME, EXTRA )
-%   CREATEFMU( MODEL_ID, CLASS_FILE_NAME, EXTRA, USE_JVM )
+%   CREATEFMU( MODEL_ID, CLASS_FILE_NAME, FMI_VERSION, EXTRA )
+%   CREATEFMU( MODEL_ID, CLASS_FILE_NAME, FMI_VERSION, EXTRA, USE_JVM )
 %
 %   This function call creates an FMU using the model identifier 
 %   specified in MODEL_ID. Input argument CLASS_FILE_NAME specifies 
-%   the class definition file. Additional files, e.g., defining 
-%   functions called by method doStep(...), can be specified using 
-%   input argument EXTRA.
+%   the class definition file. FMI_VERSION specifies the version of
+%   of the FMU ('1' = FMI 1.0, '2' = FMI 2.0). Additional files, e.g.,
+%   defining functions called by method doStep(...), can be specified 
+%   using input argument EXTRA.
 %
 %   Boolean input parameter USE_JVM can be used to control whether 
 %   MATLAB is started with our without the Java Virtual Machine. Set
@@ -29,7 +30,7 @@ function createFMU( modelID, classFileName, extra, useJVM )
 		end
 	end
 
-    if nargin == 3
+    if nargin == 4
 	   useJVM = false;
 	end
 
@@ -41,8 +42,8 @@ function createFMU( modelID, classFileName, extra, useJVM )
 		error( 'input argument CLASS_FILE_NAME is not a string' );
 	end
 
-	if ~ischar( classFileName )
-		error( 'input argument CLASS_FILE_NAME is not a string' );
+	if ~ischar( fmiVersion )
+		error( 'input argument FMI_VERSION is not a string' );
 	end
 
 	if ~islogical( useJVM )
@@ -105,6 +106,6 @@ function createFMU( modelID, classFileName, extra, useJVM )
 		extraFlags = [ extraFlags '-F ' ];
 	end
 	
-	cmd = [ 'python.exe ' pyScriptPath ' -v ' extraFlags ' -m ' char(modelID) ' -c ' classFileName ' -i inputs.txt -o outputs.txt -I "' matlabroot '" ' char(extra) ];
+	cmd = [ 'python.exe ' pyScriptPath ' -v ' extraFlags ' -f ' fmiVersion ' -m ' char(modelID) ' -s ' classFileName ' -i inputs.txt -o outputs.txt -I "' matlabroot '" ' char(extra) ];
 	[status,cmdout] = system( cmd, '-echo' );
 end

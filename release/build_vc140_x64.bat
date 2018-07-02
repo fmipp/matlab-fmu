@@ -50,6 +50,7 @@ XCOPY /E /Y "%BUILD_DIR%\import\swig\+fmippim" "%MATLAB_FMIPP_DIR%\packages\+fmi
 XCOPY /E /Y "%BUILD_DIR%\export\swig\+fmippex" "%MATLAB_FMIPP_DIR%\packages\+fmippex"
 COPY "%BUILD_DIR%\import\swig\SwigMem.m" "%MATLAB_FMIPP_DIR%\packages\SwigMem.m"
 COPY "%BUILD_DIR%\import\swig\SwigRef.m" "%MATLAB_FMIPP_DIR%\packages\SwigRef.m"
+COPY "%BUILD_DIR%\Release\fmi2.dll" "%MATLAB_FMIPP_DIR%\binaries\fmi2.dll"
 COPY "%BUILD_DIR%\Release\libfmipp_fmu_frontend.lib" "%MATLAB_FMIPP_DIR%\binaries\libfmipp_fmu_frontend.lib"
 
 
