@@ -5,7 +5,7 @@
 
 ########################################################################
 #
-# This script provides the list of files included into a release of 
+# This script provides the list of files included into a release of
 # the FMI++ MATLAB Export Utility.
 #
 ########################################################################
@@ -43,13 +43,21 @@ additional_files = [
    'scripts\\fmi2.py', # Python script for generating FMUs (FMI 2.0)
    'scripts\\generate_fmu.py', # Python script for generating FMUs
    'scripts\\utils.py', # Python helper script for generating FMUs
-   'test\\import_cs\\StandaloneRadiatorCS.m',
-   'test\\import_cs\\StandaloneRadiatorCS.mo',
-   'test\\import_me\\StandaloneRadiatorME.m',
-   'test\\import_me\\StandaloneRadiatorME.mo',
-   'test\\export\\SimpleController.m',
-   'test\\export\\ControlledRadiator.mo',
-   'test\\export\\create_fmu.m',
+   'tutorial\\tutorial.pdf',
+   'tutorial\\export\\ControlledRadiator.mo',
+   'tutorial\\export\\create_fmu.m',
+   'tutorial\\export\\debug_controller.m',
+   'tutorial\\export\\README.md',
+   'tutorial\\export\\SimpleController.m',
+   'tutorial\\export\\html\\create_fmu.html',
+   'tutorial\\export\\html\\debug_controller.html',
+   'tutorial\\export\\html\\SimpleController.html',
+   'tutorial\\import\\ControlledRadiator.mo',
+   'tutorial\\import\\README.md',
+   'tutorial\\import\\SimpleController.m',
+   'tutorial\\import\\html\\SimpleController.html',
+   'tutorial\\import\\html\\SimpleController.png',
+   'tutorial\\import\\html\\SimpleController_01.png',
    ]
 
 # List of files (without binaries and docs) that are part of the release.
