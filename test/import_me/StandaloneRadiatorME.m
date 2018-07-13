@@ -3,20 +3,21 @@ fmippPath = getenv( 'MATLAB_FMIPP_ROOT' );
 addpath( genpath( fullfile( fmippPath, 'packages' ) ) );
 
 % Specify the FMU's model name.
-model_name = 'StandaloneRadiator';
+model_name = 'StandaloneRadiatorME';
 
 % Specify the path to the extracted (unzipped) FMU.
-uri_to_extracted_fmu = 'file:///C:/Development/matlab-fmipp/test/import/StandaloneRadiator';
+uri_to_extracted_fmu = 'file:///C:/Development/matlab-fmipp/test/import_me/StandaloneRadiatorME';
 
 % Specify the FMU's configuration parameters.
-logging_on = fmippim.fmiTrue();        % Turn verbosity on/off.
-stop_before_event = fmippim.fmiTrue();  % Stop integration directly before an event occurs.
+logging_on = fmippim.fmi2True();        % Turn verbosity on/off.
+stop_before_event = true;               % Stop integration directly before an event occurs.
 event_search_precision = 1e-2;          % Set precision for searching for events.
 integrator_type = fmippim.bdf();        % Specify Sundials CVODE solver (Backward Differentiation Formula).
 %integrator_type = fmippim.rk();        % Alternatively, specify Runge-Kutta integrator.
 
-% Load the FMU.
-fmu = fmippim.FMUModelExchangeV1( uri_to_extracted_fmu, model_name, logging_on, stop_before_event, event_search_precision, integrator_type )
+% Load the FMU (FMI 2.0).
+fmu = fmippim.FMUModelExchangeV2( uri_to_extracted_fmu, model_name, logging_on, stop_before_event, event_search_precision, integrator_type )
+
 
 % Instantiate the FMU.
 status = fmu.instantiate( 'standalone_radiator1' )

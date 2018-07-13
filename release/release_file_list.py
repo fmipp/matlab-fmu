@@ -1,19 +1,19 @@
 # ----------------------------------------------------------------------
-# Copyright (c) 2015, AIT Austrian Institute of Technology GmbH.
-# All rights reserved. See file TRNSYS_FMU_LICENSE.txt for details.
+# Copyright (c) 2018, AIT Austrian Institute of Technology GmbH.
+# All rights reserved. See file MATLAB_FMU_LICENSE.txt for details.
 # ----------------------------------------------------------------------
 
 ########################################################################
 #
 # This script provides the list of files included into a release of 
-# the FMI++ TRNSYS Export Utility.
+# the FMI++ MATLAB Export Utility.
 #
 ########################################################################
 
 # List of source files (including relative path) that are originally from FMI++.
 files_from_fmipp = [
     'sources\\common\\FMIPPConfig.h',
-    'sources\\common\\FMIType.h',
+    'sources\\common\\FMUType.h',
     'sources\\common\\fmi_v1.0\\fmi_cs.h',
     'sources\\common\\fmi_v1.0\\fmiModelTypes.h',
     'sources\\common\\fmi_v2.0\\fmi_2.h',
@@ -24,6 +24,7 @@ files_from_fmipp = [
     'sources\\export\\functions\\fmi_v2.0\\fmi2Functions.h',
     'sources\\export\\include\\FMIComponentFrontEnd.h',
     'sources\\export\\include\\FMIComponentFrontEndBase.h',
+    'sources\\export\\include\\ScalarVariable.h',
 	'packages\\+fmipputils',
 ]
 
@@ -35,8 +36,10 @@ additional_files = [
     'license\\BOOST_SOFTWARE_LICENSE.txt',
     'license\\FMIPP_LICENSE.txt',
     'license\\MATLAB_FMU_LICENSE.txt',
-    'test\\import\\StandaloneRadiator.m',
-    'test\\import\\StandaloneRadiator.mo',
+    'test\\import_cs\\StandaloneRadiatorCS.m',
+    'test\\import_cs\\StandaloneRadiatorCS.mo',
+    'test\\import_me\\StandaloneRadiatorME.m',
+    'test\\import_me\\StandaloneRadiatorME.mo',
 	'test\\export\\SimpleController.m',
 	'test\\export\\ControlledRadiator.mo',
 	'test\\export\\create_fmu.m',
@@ -61,11 +64,15 @@ resources_from_fmipp_swig = {
 required_binaries = [
     'binaries\\libboost_date_time-vc120-mt-1_58.lib', # static BOOST date-time library
     'binaries\\libboost_filesystem-vc120-mt-1_58.lib', # static BOOST Filesystem library
-    'binaries\\libboost_system-vc120-mt-1_58.lib', # static BOOST System libarary
+    'binaries\\libboost_system-vc120-mt-1_58.lib', # static BOOST System library
     'binaries\\libfmipp_fmu_frontend.lib', # static library containing pre-compiled parts of the front end
     'packages\\lib\\sundials_cvode.dll', # SUNDIALS library
     'packages\\lib\\sundials_nvecserial.dll', # SUNDIALS library
-]
+    'packages\\lib\\boost_filesystem-vc120-mt-1_58.dll', # BOOST library
+    'packages\\lib\\boost_system-vc120-mt-1_58.dll', # BOOST library
+    'packages\\lib\\msvcp120.dll', # Visual Studio 2013 Redistributable library
+    'packages\\lib\\msvcr120.dll', # Visual Studio 2013 Redistributable library
+    ]
 
 # The compiled documentation in PDF format (not part of the repository).
 doc_file = 'doc\\matlab-fmu-doc.pdf'

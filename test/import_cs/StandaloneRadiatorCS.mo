@@ -1,5 +1,5 @@
 within ;
-model StandaloneRadiator
+model StandaloneRadiatorCS
 
   output Real T(start = Tstart); // radiator temperature [degC]
   output Real derT; // derivative of temperature
@@ -14,7 +14,7 @@ model StandaloneRadiator
   input Real Thigh(start = 90); // maximum operating temperature [degC]
   parameter Real Tstart = 85; // radiator temperature at simulation start [degC]
 
-  parameter Real C = 4185.5; // thermal capacity of radiator (water at 15degC, 101.325 kPa) [J/(kg*‹…degC)]
+  parameter Real C = 4185.5; // thermal capacity of radiator (water at 15degC, 101.325 kPa) [J/(kg*degC)]
   parameter Real M = 50; // mass of stored water [kg]
 
 algorithm
@@ -32,7 +32,7 @@ equation
 
   derT = der(T);
 
-  annotation (uses(Modelica(version="3.2.1")),
+  annotation (uses(Modelica(version="3.2.2")),
     version="1",
     conversion(noneFromVersion=""));
-end StandaloneRadiator;
+end StandaloneRadiatorCS;

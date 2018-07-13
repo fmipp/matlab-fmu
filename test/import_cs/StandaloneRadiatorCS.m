@@ -3,17 +3,17 @@ fmippPath = getenv( 'MATLAB_FMIPP_ROOT' );
 addpath( genpath( fullfile( fmippPath, 'packages' ) ) );
 
 % Specify the FMU's model name.
-model_name = 'StandaloneRadiator';
+model_name = 'StandaloneRadiatorCS';
 
 % Specify the path to the extracted (unzipped) FMU.
-uri_to_extracted_fmu = 'file:///C:/Users/user/Desktop/matlab-fmipp-v0.1/test/import_cs/StandaloneRadiator';
+uri_to_extracted_fmu = 'file:///C:/Development/matlab-fmipp/test/import_cs/StandaloneRadiatorCS';
 
 % Specify the FMU's configuration parameters.
 logging_on = fmippim.fmiTrue(); % Turn verbosity on/off.
 time_diff_resolution = 1e-9;    % resolution for comparing the (external) master time with the (intrenal) slave time.
 
 % Load the FMU.
-fmu = fmippim.FMUCoSimulation( uri_to_extracted_fmu, model_name, logging_on, time_diff_resolution )
+fmu = fmippim.FMUCoSimulationV2( uri_to_extracted_fmu, model_name, logging_on, time_diff_resolution )
 
 % Instantiate the FMU.
 time_out = 0;

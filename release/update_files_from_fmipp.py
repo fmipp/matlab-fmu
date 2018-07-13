@@ -20,7 +20,7 @@ def checkPathsExist( path_list ):
     # Check if files exist.
     for path in path_list:
         if ( False == os.path.isfile( path ) ) and ( False == os.path.isdir( path ) ):
-            print path, 'not found'
+            print( path, 'not found' )
             return False
     
     return True
@@ -29,8 +29,8 @@ def checkPathsExist( path_list ):
 if __name__ == "__main__":
 
     if len( sys.argv ) != 3:
-        print 'Usage:\n\tpython update_files_from_fmipp.py <fmipp_repository_dir> <fmipp_build_dir>\n'
-        print 'Attention: Be sure to execute this script from subfolder \'release\'\n'
+        print( 'Usage:\n\tpython update_files_from_fmipp.py <fmipp_repository_dir> <fmipp_build_dir>\n' )
+        print( 'Attention: Be sure to execute this script from subfolder \'release\'\n' )
         sys.exit()
     
     # Path to checked-out FMI++ repository.
@@ -57,12 +57,12 @@ if __name__ == "__main__":
     if ( False == checkPathsExist( file_list ) ): sys.exit(1)
 
     # Copy files.
-    for file_src, file_dst in zip( file_list, files_from_fmipp + resources_from_fmipp_swig.keys() ):
+    for file_src, file_dst in zip( file_list, files_from_fmipp + list( resources_from_fmipp_swig.keys() ) ):
         if os.path.isfile( file_src ):
-            print 'Copy file: ' + file_src + '\n\t--> ..\\' + file_dst
+            print( 'Copy file: ' + file_src + '\n\t--> ..\\' + file_dst )
             shutil.copyfile( file_src, '..\\' + file_dst )
         elif os.path.isdir( file_src ):
-            print 'Copy directory: ' + file_src + '\n\t--> ..\\' + file_dst
+            print( 'Copy directory: ' + file_src + '\n\t--> ..\\' + file_dst )
             shutil.rmtree( '..\\' + file_dst, ignore_errors = True )
             shutil.copytree( file_src, '..\\' + file_dst )
     

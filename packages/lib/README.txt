@@ -5,3 +5,7 @@ This directory should contain the following libraries (all compiled in Release m
 - fmippimMEX.mexw32
 - sundials_cvode.dll (SUNDIALS)
 - sundials_nvecserial.dll (SUNDIALS)
+- boost_filesystem-vc120-mt-1_58 (BOOST)
+- boost_system-vc120-mt-1_58 (BOOST)
+- msvcp120.dll (Visual Studio 2013 Redistributable)
+- msvcr120.dll (Visual Studio 2013 Redistributable)

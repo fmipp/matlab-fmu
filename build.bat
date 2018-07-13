@@ -23,7 +23,11 @@ REM Delete debug file if it already exists.
 IF EXIST %LOG_FILE% del /F %LOG_FILE%
 
 REM Setup command line tools from Microsoft Visual Studio Express 2013.
-CALL "%VS120COMNTOOLS%vsvars32.bat" >> %LOG_FILE%
+IF "%VS120COMNTOOLS%"=="" (
+  CALL "C:\Program Files (x86)\Microsoft Visual Studio 12.0\Common7\Tools\vsvars32.bat" >> %LOG_FILE%
+) ELSE (
+  CALL "%VS120COMNTOOLS%vsvars32.bat" >> %LOG_FILE%
+)
 
 REM Define FMI export functions implementation file.
 SET FMI_FUNCTIONS_IMPLEMENTATION="%~DP0\sources\export\functions\fmi_v1.0\fmiFunctions.cpp"
